@@ -294,7 +294,7 @@ class FieldsService extends BaseApplicationComponent
 
 		if ($recordValidates && $settingsValidate)
 		{
-			$transaction = craft()->db->beginTransaction();
+			$transaction = craft()->db->getCurrentTransaction() === null ? craft()->db->beginTransaction() : null;
 			try
 			{
 				$fieldType->onBeforeSave();
@@ -345,11 +345,18 @@ class FieldsService extends BaseApplicationComponent
 
 				$fieldType->onAfterSave();
 
-				$transaction->commit();
+				if ($transaction !== null)
+				{
+					$transaction->commit();
+				}
 			}
 			catch (\Exception $e)
 			{
-				$transaction->rollBack();
+				if ($transaction !== null)
+				{
+					$transaction->rollback();
+				}
+
 				throw $e;
 			}
 
@@ -554,14 +561,27 @@ class FieldsService extends BaseApplicationComponent
 	}
 
 	/**
-	 * Deletes a field layout by its ID.
+	 * Deletes a field layout(s) by its ID.
 	 *
-	 * @param int $layoutId
+	 * @param int|array $layoutId
 	 * @return bool
 	 */
 	public function deleteLayoutById($layoutId)
 	{
-		$affectedRows = craft()->db->createCommand()->delete('fieldlayouts', array('id' => $layoutId));
+		if (!$layoutId)
+		{
+			return false;
+		}
+
+		if (is_array($layoutId))
+		{
+			$affectedRows = craft()->db->createCommand()->delete('fieldlayouts', array('in', 'id', $layoutId));
+		}
+		else
+		{
+			$affectedRows = craft()->db->createCommand()->delete('fieldlayouts', array('id' => $layoutId));
+		}
+
 		return (bool) $affectedRows;
 	}
 

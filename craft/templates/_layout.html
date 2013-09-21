@@ -1,72 +1,214 @@
-{#
- # Layout template
- # ---------------
- #
- # This template defines your site’s global layout. It can be
- # “extended” by other templates to fill in the gaps.
- #
- # See Twig’s Template Inheritance documentation for more details:
- # http://twig.sensiolabs.org/doc/templates.html#template-inheritance
- #}
-
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">
 <head>
 	<meta charset="utf-8" />
-	<title>{% if title is defined %}{{ title }} - {% endif %}{{ siteName }}</title>
+	<title>{{ siteName }}</title>
 	<link rel="home" href="{{ siteUrl }}" />
+	<link rel="stylesheet" href="/css/styles.css">
+	
+	<style>
 
-	<style type="text/css">
-		body { margin: 50px; font-family: sans-serif; background: #fff; }
-		#container { margin: 0 auto; width: 700px;
-			-webkit-box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-			        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+		{% if craft.assets.sourceId(1) | length %}
+    		{% set background = craft.assets.sourceId(1).order('RAND()').first() %}
+    	{% endif %}
+
+
+		html { 
+  			background: url({{ background.url }}) no-repeat center center fixed; 
+  			-webkit-background-size: cover;
+  			-moz-background-size: cover;
+  			-o-background-size: cover;
+  			background-size: cover;
 		}
 
-		#header, #footer { display: block; color: #fff; background: #da5a47; }
-		#header a, #footer a { color: #fff; }
-		#header { border-radius: 7px 7px 0 0; padding: 25px; }
-		#header:after { content: '.'; display: block; height: 0; clear: both; visibility: hidden; }
-		#header a { text-decoration: none; }
-		#header h1 { float: left; margin: 0; font-weight: normal; font-size: 30px; line-height: 1; }
-		#header nav { display: block; float: right; }
-		#header nav ul { margin: 0; list-style-type: none; }
-		#header nav ul li { float: left; margin-left: 20px; }
-		#header nav ul li a { display: block; margin-top: 4px; line-height: 22px; }
-		#header nav ul li a:hover,
-		#header nav ul li a.active { border-bottom: 2px solid #fff; }
-		#header nav ul li a.active { cursor: default; }
+		.fundname {
+			margin-bottom: 0;
+			position: absolute;
+			bottom:0;
+			padding-left: 140px;
+			font-size: 20px;
+			line-height: 24px;
+			background: url({{ background.url }}) center center fixed;
+			-webkit-background-clip: text;
+			background-clip: text;
+		}
 
-		#content { display: block; padding: 25px; background: #fff; }
-		#content h1 { margin-top: 0; font-size: 35px; font-weight: bold; }
-		#content a { color: #da5a47; text-decoration: none; }
-		#content a:hover { text-decoration: underline; }
+		
 
-		#footer { border-radius: 0 0 7px 7px; padding: 15px; font-size: 12px; text-align: center; }
 	</style>
+
 </head>
 
 <body>
 	<div id="container">
 		<header id="header">
-			<h1><a href="{{ siteUrl }}">{{ siteName }}</a></h1>
+			<h1 class="fundname bd">Cab<br>
+			Calloway<br>
+			School<br>
+			Fund</h1>
+			<h5>
+				Cab Calloway School Fund is a non-profit corporation 501c3. <br>Our mission is to support Cab Calloway School of the Arts.
+			</h5>
 
-			<nav>
-				<ul>
-					<li><a href="{{ url('news') }}" {% if craft.request.firstSegment == 'news' %}class="active"{% endif %}>News</a></li>
-				</ul>
-			</nav>
+			
 		</header>
-
+		
 		<main id="content" role="main">
-			{% block content %}
-				<p>If you see me, you haven’t set your <code>{% verbatim %}{% block content %}…{% endblock %}{% endverbatim %}</code> yet.</p>
-				<p>See Twig’s <a href="http://twig.sensiolabs.org/doc/templates.html#template-inheritance">Template Inheritance</a> documentation for an explanation.</p>
-			{% endblock %}
+		
+		<nav>
+				<ul>
+					<li><a href="#about">ABOUT</a></li>
+					<li><a href="#login">LOGIN</a></li>
+				</ul>
+		</nav>
+			<form action="#" method="POST" class="donation-form">
+				<fieldset>
+					<legend>
+						Contact Information
+					</legend>
+					<div class="form-row form-first-name">
+						<label>First Name</label>
+						<input type="text" name="first-name" class="first-name text">
+					</div>
+					<div class="form-row form-last-name">
+						<label>Last Name</label>
+						<input type="text" name="last-name" class="last-name text">
+					</div>
+					<div class="form-row form-email">
+						<label>Email</label>
+						<input type="text" name="email" class="email text">
+					</div>
+					<div class="form-row form-phone">
+						<label>Phone</label>
+						<input type="text" name="phone" class="phone text">
+					</div>
+					<div class="form-row form-address">
+						<label>Address</label>
+						<textarea name="address" cols="30" rows="2" class="address text"></textarea>
+					</div>
+					<div class="form-row form-city">
+						<label>City</label>
+						<input type="text" name="city" class="city text">
+					</div>
+					<div class="form-row form-state">
+						<label>State</label>
+						<select name="state" class="state text">
+							<option value="AL">AL</option>
+							<option value="AK">AK</option>
+							<option value="AZ">AZ</option>
+							<option value="AR">AR</option>
+							<option value="CA">CA</option>
+							<option value="CO">CO</option>
+							<option value="CT">CT</option>
+							<option value="DE">DE</option>
+							<option value="DC">DC</option>
+							<option value="FL">FL</option>
+							<option value="GA">GA</option>
+							<option value="HI">HI</option>
+							<option value="ID">ID</option>
+							<option value="IL">IL</option>
+							<option value="IN">IN</option>
+							<option value="IA">IA</option>
+							<option value="KS">KS</option>
+							<option value="KY">KY</option>
+							<option value="LA">LA</option>
+							<option value="ME">ME</option>
+							<option value="MD">MD</option>
+							<option value="MA">MA</option>
+							<option value="MI">MI</option>
+							<option value="MN">MN</option>
+							<option value="MS">MS</option>
+							<option value="MO">MO</option>
+							<option value="MT">MT</option>
+							<option value="NE">NE</option>
+							<option value="NV">NV</option>
+							<option value="NH">NH</option>
+							<option value="NJ">NJ</option>
+							<option value="NM">NM</option>
+							<option value="NY">NY</option>
+							<option value="NC">NC</option>
+							<option value="ND">ND</option>
+							<option value="OH">OH</option>
+							<option value="OK">OK</option>
+							<option value="OR">OR</option>
+							<option value="PA">PA</option>
+							<option value="RI">RI</option>
+							<option value="SC">SC</option>
+							<option value="SD">SD</option>
+							<option value="TN">TN</option>
+							<option value="TX">TX</option>
+							<option value="UT">UT</option>
+							<option value="VT">VT</option>
+							<option value="VA">VA</option>
+							<option value="WA">WA</option>
+							<option value="WV">WV</option>
+							<option value="WI">WI</option>
+							<option value="WY">WY</option>
+						</select>
+					</div>
+					<div class="form-row form-zip">
+						<label>Zip</label>
+						<input type="text" name="zip" class="zip text">
+					</div>
+				</fieldset>
+
+				<fieldset>
+					<legend>
+						Your Generous Donation
+					</legend>
+					<div class="form-row form-amount">
+						<label><input type="radio" name="amount" class="set-amount" value="25"> $25</label>
+						<label><input type="radio" name="amount" class="set-amount" value="500"> $500</label>
+						<label><input type="radio" name="amount" class="set-amount" value="2500"> $2,500</label>
+						<label><input type="radio" name="amount" class="set-amount" value="100"> $100</label>
+						<label><input type="radio" name="amount" class="set-amount" value="1000"> $1,000</label>
+						<label><input type="radio" name="amount" class="set-amount" value="5000"> $5,000</label>
+						<label><input type="radio" name="amount" class="other-amount" value="0"> Other:</label> <input type="text" class="amount text" disabled>
+					</div>
+					<div class="form-row form-number">
+						<label>Card Number</label>
+						<input type="text" autocomplete="off" class="card-number text" value="4242424242424242">
+					</div>
+					<div class="form-row form-cvc">
+						<label>CVC</label>
+						<input type="text" autocomplete="off" class="card-cvc text" value="123">
+					</div>
+					<div class="form-row form-expiry">
+						<label>Expiration Date</label>
+						<select class="card-expiry-month text">
+							<option value="01">January</option>
+							<option value="02">February</option>
+							<option value="03">March</option>
+							<option value="04">April</option>
+							<option value="05">May</option>
+							<option value="06">June</option>
+							<option value="07">July</option>
+							<option value="08">August</option>
+							<option value="09">September</option>
+							<option value="10">October</option>
+							<option value="11">November</option>
+							<option value="12">December</option>
+						</select>
+						<select class="card-expiry-year text">
+							<option value="2012">2012</option>
+							<option value="2013">2013</option>
+							<option value="2014" selected>2014</option>
+							<option value="2015">2015</option>
+							<option value="2016">2016</option>
+							<option value="2017">2017</option>
+							<option value="2018">2018</option>
+							<option value="2019">2019</option>
+							<option value="2020">2020</option>
+						</select>
+					</div>
+					<div class="form-row form-submit">
+						<input type="submit" class="submit-button" value="Submit Donation">
+					</div>
+				</fieldset>
+			</form>
 		</main>
 
 		<footer id="footer">
-			Copyright {{ now.year }} {{ craft.request.serverName | ucfirst }}. All rights reserved  •  Built with <a href="http://buildwithcraft.com">Craft</a>
 		</footer>
 	</div>
 </body>

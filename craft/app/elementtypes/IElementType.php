@@ -29,11 +29,6 @@ interface IElementType extends IComponentType
 	/**
 	 * @return bool
 	 */
-	public function hasThumbs();
-
-	/**
-	 * @return bool
-	 */
 	public function isTranslatable();
 
 	/**

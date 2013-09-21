@@ -29,7 +29,7 @@ class UrlHelper
 	public static function getUrl($path = '', $params = null, $protocol = '', $mustShowScriptName = false)
 	{
 		// Return $path if it appears to be an absolute URL.
-		if (strpos($path, '://') !== false || strncmp($path, '//', 2) == 0)
+		if (mb_strpos($path, '://') !== false || strncmp($path, '//', 2) == 0)
 		{
 			return $path;
 		}
@@ -67,7 +67,7 @@ class UrlHelper
 	public static function getCpUrl($path = '', $params = null, $protocol = '')
 	{
 		$path = trim($path, '/');
-		$path = craft()->config->get('cpTrigger').'/'.$path;
+		$path = craft()->config->get('cpTrigger').($path ? '/'.$path : '');
 
 		return static::_getUrl($path, $params, $protocol, true, false);
 	}
@@ -99,7 +99,7 @@ class UrlHelper
 	public static function getResourceUrl($path = '', $params = null, $protocol = '')
 	{
 		$path = $origPath = trim($path, '/');
-		$path = craft()->config->get('resourceTrigger').'/'.$path;
+		$path = craft()->config->getResourceTrigger().'/'.$path;
 
 		// Add timestamp to the resource URL for caching, if Craft is not operating in dev mode
 		if ($origPath && !craft()->config->get('devMode'))
@@ -174,37 +174,70 @@ class UrlHelper
 		}
 		else
 		{
-			$params = ltrim($params, '&?');
+			$params = trim($params, '&?');
 		}
+
+		// Were there already any query string params in the path?
+		if (($qpos = strpos($path, '?')) !== false)
+		{
+			$params = substr($path, $qpos+1).($params ? '&'.$params : '');
+			$path = substr($path, 0, $qpos);
+		}
+
+		$showScriptName = ($mustShowScriptName || !craft()->config->omitScriptNameInUrls());
 
 		if ($dynamicBaseUrl)
 		{
+			// Get the full URL to the current script (http://example.com/index.php)
 			$baseUrl = craft()->request->getHostInfo($protocol).craft()->urlManager->getBaseUrl();
 
-			if (!$mustShowScriptName && craft()->config->omitScriptNameInUrls())
+			// Are we omitting the script name?
+			if (!$showScriptName)
 			{
-				$baseUrl = substr($baseUrl, 0, strrpos($baseUrl, '/'));
+				// Chop it off (http://example.com/)
+				$baseUrl = mb_substr($baseUrl, 0, mb_strrpos($baseUrl, '/')+1);
 			}
 		}
 		else
 		{
 			$baseUrl = Craft::getSiteUrl($protocol);
 
-			if ($mustShowScriptName || !craft()->config->omitScriptNameInUrls())
+			// Should we be adding that script name in?
+			if ($showScriptName)
 			{
-				$baseUrl .= strrchr(craft()->urlManager->getBaseUrl(), '/');
+				$dynamicBaseUrl = craft()->urlManager->getBaseUrl();
+				$baseUrl .= mb_strrichr($dynamicBaseUrl, mb_strrpos($dynamicBaseUrl, '/')+1);
 			}
 		}
 
 		// Put it all together
-		if (craft()->config->usePathInfo())
+		if (!$showScriptName || craft()->config->usePathInfo())
 		{
-			return $baseUrl.($path ? '/'.$path : '').($params ? '?'.$params : '').$anchor;
+			if ($path)
+			{
+				$url = rtrim($baseUrl, '/').'/'.$path;
+			}
+			else
+			{
+				$url = $baseUrl;
+			}
 		}
 		else
 		{
-			$pathParam = craft()->urlManager->pathParam;
-			return $baseUrl.($path || $params ? '?'.($path ? $pathParam.'='.$path : '').($path && $params ? '&' : '').$params : '').$anchor;
+			$url = $baseUrl;
+			$params = craft()->urlManager->pathParam.'='.$path.($params ? '&'.$params : '');
 		}
+
+		if ($params)
+		{
+			$url .= '?'.$params;
+		}
+
+		if ($anchor)
+		{
+			$url .= $anchor;
+		}
+
+		return $url;
 	}
 }

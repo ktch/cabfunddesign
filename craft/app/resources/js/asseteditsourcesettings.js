@@ -1,4 +1,4 @@
-/*!
+/**
  * Craft by Pixel & Tonic
  *
  * @package   Craft

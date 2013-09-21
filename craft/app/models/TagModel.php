@@ -49,7 +49,7 @@ class TagModel extends BaseElementModel
 	{
 		if ($this->setId)
 		{
-			return craft()->tags->getSetById($this->setId);
+			return craft()->tags->getTagSetById($this->setId);
 		}
 	}
 }

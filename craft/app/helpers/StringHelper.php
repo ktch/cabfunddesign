@@ -18,6 +18,7 @@ class StringHelper
 {
 	private static $_asciiCharMap;
 	private static $_asciiPunctuation;
+	private static $_iconv;
 
 	/**
 	 * Converts an array to a string.
@@ -98,7 +99,7 @@ class StringHelper
 		$randomString = '';
 
 		// count the number of chars in the valid chars string so we know how many choices we have
-		$numValidChars = strlen($validChars);
+		$numValidChars = mb_strlen($validChars);
 
 		// repeat the steps until we've created a string of the right length
 		for ($i = 0; $i < $length; $i++)
@@ -241,7 +242,7 @@ class StringHelper
 	public static function asciiString($str)
 	{
 		$asciiStr = '';
-		$strlen = strlen($str);
+		$strlen = mb_strlen($str);
 		$asciiCharMap = static::getAsciiCharMap();
 
 		for ($c = 0; $c < $strlen; $c++)
@@ -288,7 +289,7 @@ class StringHelper
 		$str = strtr($str, static::_getCharMap());
 
 		// Normalize to lowercase
-		$str = function_exists('mb_strtolower') ? mb_strtolower($str, 'UTF-8') : strtolower($str);
+		$str = mb_strtolower($str);
 
 		// Remove ignore-words?
 		if (is_array($ignore) && ! empty($ignore))
@@ -329,8 +330,105 @@ class StringHelper
 	}
 
 	/**
+	 * Attempts to convert a string to UTF-8 and clean any non-valid UTF-8 characters.
+	 *
+	 * @static
+	 * @param      $string
+	 * @return bool|string
+	 */
+	public static function convertToUTF8($string)
+	{
+		if (!class_exists('\HTMLPurifier_Encoder'))
+		{
+			require_once Craft::getPathOfAlias('system.vendors.htmlpurifier').'/HTMLPurifier.standalone.php';
+		}
+
+		// If it's already a UTF8 string, just clean and return it
+		if (static::isUTF8($string))
+		{
+			return \HTMLPurifier_Encoder::cleanUTF8($string);
+		}
+
+		// Otherwise set HTMLPurifier to the actual string encoding
+		$config = \HTMLPurifier_Config::createDefault();
+		$config->set('Core.Encoding', static::getEncoding($string));
+
+		// Clean it
+		$string = \HTMLPurifier_Encoder::cleanUTF8($string);
+
+		// Convert it to UTF8 if possible
+		if (static::checkForIconv())
+		{
+			$string = \HTMLPurifier_Encoder::convertToUTF8($string, $config, null);
+		}
+		else
+		{
+			$encoding = static::getEncoding($string);
+			$string = mb_convert_encoding($string, 'utf-8', $encoding);
+		}
+
+		return $string;
+	}
+
+	/**
+	 * Returns whether iconv is installed and not buggy.
+	 *
+	 * @static
+	 * @return bool
+	 */
+	public static function checkForIconv()
+	{
+		if (!isset(static::$_iconv))
+		{
+			static::$_iconv = false;
+
+			// Check if iconv is installed.
+			// Note we can't just use HTMLPurifier_Encoder::iconvAvailable() because they don't consider iconv "installed" if it's there but "unusable".
+			if (!function_exists('iconv'))
+			{
+				Craft::log('iconv is not installed.  Will fallback to mbstring.', LogLevel::Warning);
+			}
+			else if (\HTMLPurifier_Encoder::testIconvTruncateBug() != \HTMLPurifier_Encoder::ICONV_OK)
+			{
+				Craft::log('Buggy iconv installed.  Will fallback to mbstring.', LogLevel::Warning);
+			}
+			else
+			{
+				static::$_iconv = true;
+			}
+		}
+
+		return static::$_iconv;
+	}
+
+	/**
+	 * Checks if the given string is UTF-8 encoded.
+	 *
+	 * @static
+	 * @param $string The string to check.
+	 * @return bool
+	 */
+	public static function isUTF8($string)
+	{
+		return static::getEncoding($string) == 'utf-8' ? true : false;
+	}
+
+	/**
+	 * Gets the current encoding of the given string.
+	 *
+	 * @static
+	 * @param $string
+	 * @return string
+	 */
+	public static function getEncoding($string)
+	{
+		return mb_strtolower(mb_detect_encoding($string, mb_detect_order(), true));
+	}
+
+	/**
 	 * Get array of chars to be used for conversion.
 	 *
+	 * @static
 	 * @access private
 	 * @return array
 	 */

@@ -46,7 +46,8 @@ class UserElementType extends BaseElementType
 	{
 		$sources = array(
 			'*' => array(
-				'label' => Craft::t('All users')
+				'label' => Craft::t('All users'),
+				'hasThumbs' => true
 			)
 		);
 
@@ -57,8 +58,9 @@ class UserElementType extends BaseElementType
 				$key = 'group:'.$group->id;
 
 				$sources[$key] = array(
-					'label'    => $group->name,
-					'criteria' => array('groupId' => $group->id)
+					'label'     => $group->name,
+					'criteria'  => array('groupId' => $group->id),
+					'hasThumbs' => true
 				);
 			}
 		}

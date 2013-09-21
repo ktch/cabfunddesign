@@ -26,20 +26,21 @@ class CraftTwigExtension extends \Twig_Extension
 	public function getTokenParsers()
 	{
 		return array(
+			new Exit_TokenParser(),
+			new IncludeResource_TokenParser('includeCss'),
+			new IncludeResource_TokenParser('includeCssFile'),
+			new IncludeResource_TokenParser('includeCssResource'),
+			new IncludeResource_TokenParser('includeHiResCss'),
+			new IncludeResource_TokenParser('includeJs'),
+			new IncludeResource_TokenParser('includeJsFile'),
+			new IncludeResource_TokenParser('includeJsResource'),
+			new IncludeTranslations_TokenParser(),
+			new Nav_TokenParser(),
+			new Paginate_TokenParser(),
 			new Redirect_TokenParser(),
 			new RequireLogin_TokenParser(),
 			new RequirePackage_TokenParser(),
 			new RequirePermission_TokenParser(),
-			new IncludeResource_TokenParser('includeCssFile'),
-			new IncludeResource_TokenParser('includeJsFile'),
-			new IncludeResource_TokenParser('includeCssResource'),
-			new IncludeResource_TokenParser('includeJsResource'),
-			new IncludeResource_TokenParser('includeCss'),
-			new IncludeResource_TokenParser('includeHiResCss'),
-			new IncludeResource_TokenParser('includeJs'),
-			new IncludeTranslations_TokenParser(),
-			new Exit_TokenParser(),
-			new Paginate_TokenParser(),
 		);
 	}
 
@@ -67,6 +68,7 @@ class CraftTwigExtension extends \Twig_Extension
 			'namespace'  => $namespaceFilter,
 			'ns'         => $namespaceFilter,
 			'number'     => new \Twig_Filter_Function('\Craft\craft()->numberFormatter->formatDecimal'),
+			'parseRefs'  => new \Twig_Filter_Function('\Craft\craft()->elements->parseRefs'),
 			'percentage' => new \Twig_Filter_Function('\Craft\craft()->numberFormatter->formatPercentage'),
 			'replace'    => new \Twig_Filter_Method($this, 'replaceFilter'),
 			'translate'  => $translateFilter,
@@ -151,7 +153,7 @@ class CraftTwigExtension extends \Twig_Extension
 	 * Parses text through Markdown.
 	 *
 	 * @param string $str
-	 * @return string
+	 * @return \Twig_Markup
 	 */
 	public function markdownFilter($str)
 	{
@@ -251,7 +253,11 @@ class CraftTwigExtension extends \Twig_Extension
 			$globals['siteName'] = Craft::getSiteName();
 			$globals['siteUrl'] = Craft::getSiteUrl();
 
-			$globals['user'] = craft()->userSession->getUser();
+			$globals['currentUser'] = craft()->userSession->getUser();
+
+			// Keep 'user' around so long as it's not hurting anyone.
+			// Technically deprecated, though.
+			$globals['user'] = $globals['currentUser'];
 
 			if (craft()->request->isSiteRequest())
 			{

@@ -1,9 +1,10 @@
-/*!
+/**
  * Garnish UI toolkit
  *
  * @copyright 2013 Pixel & Tonic, Inc.. All rights reserved.
  * @author    Brandon Kelly <brandon@pixelandtonic.com>
  * @version   0.1
+ * @license   THIS IS NO F.O.S.S!
  */
 (function($){
 
@@ -299,11 +300,11 @@ Garnish = {
 	 */
 	hitTest: function(x, y, elem)
 	{
-		Garnish.hitTest._$elem = $(elem),
-		Garnish.hitTest._offset = Garnish.hitTest._$elem.offset(),
-		Garnish.hitTest._x1 = Garnish.hitTest._offset.left,
-		Garnish.hitTest._y1 = Garnish.hitTest._offset.top,
-		Garnish.hitTest._x2 = Garnish.hitTest._x1 + Garnish.hitTest._$elem.outerWidth(),
+		Garnish.hitTest._$elem = $(elem);
+		Garnish.hitTest._offset = Garnish.hitTest._$elem.offset();
+		Garnish.hitTest._x1 = Garnish.hitTest._offset.left;
+		Garnish.hitTest._y1 = Garnish.hitTest._offset.top;
+		Garnish.hitTest._x2 = Garnish.hitTest._x1 + Garnish.hitTest._$elem.outerWidth();
 		Garnish.hitTest._y2 = Garnish.hitTest._y1 + Garnish.hitTest._$elem.outerHeight();
 
 		return (x >= Garnish.hitTest._x1 && x < Garnish.hitTest._x2 && y >= Garnish.hitTest._y1 && y < Garnish.hitTest._y2);
@@ -816,6 +817,9 @@ Garnish.BaseDrag = Garnish.Base.extend({
 	lastMouseX: null,
 	lastMouseY: null,
 
+	scrollProperty: null,
+	scrollDir: null,
+
 	/**
 	 * Init
 	 */
@@ -884,10 +888,13 @@ Garnish.BaseDrag = Garnish.Base.extend({
 	 */
 	onMouseMove: function(ev)
 	{
-		ev.preventDefault();
+		if (ev)
+		{
+			ev.preventDefault();
 
-		if (this.settings.axis != Garnish.Y_AXIS) this.mouseX = ev.pageX;
-		if (this.settings.axis != Garnish.X_AXIS) this.mouseY = ev.pageY;
+			if (this.settings.axis != Garnish.Y_AXIS) this.mouseX = ev.pageX;
+			if (this.settings.axis != Garnish.X_AXIS) this.mouseY = ev.pageY;
+		}
 
 		this.mouseDistX = this.mouseX - this.mousedownX;
 		this.mouseDistY = this.mouseY - this.mousedownY;
@@ -906,7 +913,104 @@ Garnish.BaseDrag = Garnish.Base.extend({
 			}
 		}
 
+		if (ev)
+		{
+			// Is the mouse up against one of the window edges?
+			this.onMouseMove._scrollProperty = null;
+
+			if (this.settings.axis != Garnish.X_AXIS)
+			{
+				// Scrolling up?
+				this.onMouseMove._winScrollTop = Garnish.$win.scrollTop();
+
+				if (this.mouseY < this.onMouseMove._winScrollTop + Garnish.BaseDrag.windowScrollTargetSize)
+				{
+					this.onMouseMove._scrollProperty = 'scrollTop';
+					this.onMouseMove._scrollDir = -1;
+				}
+				else
+				{
+					// Scrolling down?
+					this.onMouseMove._winHeight = Garnish.$win.height();
+
+					if (this.mouseY > this.onMouseMove._winScrollTop + this.onMouseMove._winHeight - Garnish.BaseDrag.windowScrollTargetSize)
+					{
+						this.onMouseMove._scrollProperty = 'scrollTop';
+						this.onMouseMove._scrollDir = 1;
+					}
+				}
+			}
+
+			if (!this.onMouseMove._scrollProperty && this.settings.axis != Garnish.Y_AXIS)
+			{
+				// Scrolling left?
+				this.onMouseMove._winScrollLeft = Garnish.$win.scrollLeft();
+
+				if (this.mouseX < this.onMouseMove._winScrollLeft + Garnish.BaseDrag.windowScrollTargetSize)
+				{
+					this.onMouseMove._scrollProperty = 'scrollLeft';
+					this.onMouseMove._scrollDir = -1;
+				}
+				else
+				{
+					// Scrolling right?
+					this.onMouseMove._winWidth = Garnish.$win.width();
+
+					if (this.mouseX > this.onMouseMove._winScrollLeft + this.onMouseMove._winWidth - Garnish.BaseDrag.windowScrollTargetSize)
+					{
+						this.onMouseMove._scrollProperty = 'scrollLeft';
+						this.onMouseMove._scrollDir = 1;
+					}
+				}
+			}
+
+			if (this.onMouseMove._scrollProperty)
+			{
+				if (!this.scrollProperty)
+				{
+					this.scrollInterval = setInterval($.proxy(this, 'scrollWindow'), 20);
+				}
+
+				this.scrollProperty = this.onMouseMove._scrollProperty;
+				this.scrollDir = this.onMouseMove._scrollDir;
+			}
+			else
+			{
+				this.cancelWindowScroll();
+			}
+		}
+
 		this.onDrag();
+	},
+
+	scrollWindow: function()
+	{
+		this.scrollWindow._currentPos = Garnish.$win[this.scrollProperty]();
+		this.scrollWindow._scrollDiff = this.scrollDir * 3;
+		Garnish.$win[this.scrollProperty](this.scrollWindow._currentPos + this.scrollWindow._scrollDiff);
+
+		if (this.scrollProperty == 'scrollTop')
+		{
+			this.mouseY -= this.scrollwindow._scrollDiff;
+		}
+		else
+		{
+			this.mouseX -= this.scrollwindow._scrollDiff;
+		}
+
+		this.onMouseMove();
+	},
+
+	cancelWindowScroll: function()
+	{
+		if (this.scrollInterval)
+		{
+			clearInterval(this.scrollInterval);
+			this.scrollInterval = null;
+		}
+
+		this.scrollProperty = null;
+		this.scrollDir = null;
 	},
 
 	/**
@@ -930,6 +1034,30 @@ Garnish.BaseDrag = Garnish.Base.extend({
 	 */
 	startDragging: function()
 	{
+		// Set the $draggee
+		switch (typeof this.settings.filter)
+		{
+			case 'function':
+			{
+				this.$draggee = this.settings.filter();
+				break;
+			}
+
+			case 'string':
+			{
+				this.$draggee = this.$items.filter(this.settings.filter);
+				break;
+			}
+
+			default:
+			{
+				this.$draggee = this.$targetItem;
+			}
+		}
+
+		// put the target item in the front of the list
+		this.$draggee = $([ this.$targetItem[0] ].concat(this.$draggee.not(this.$targetItem[0]).toArray()));
+
 		this.dragging = true;
 		this.onDragStart();
 	},
@@ -940,8 +1068,8 @@ Garnish.BaseDrag = Garnish.Base.extend({
 	stopDragging: function()
 	{
 		this.dragging = false;
-
 		this.onDragStop();
+		this.cancelWindowScroll();
 	},
 
 	/**
@@ -1068,9 +1196,11 @@ Garnish.BaseDrag = Garnish.Base.extend({
 },
 {
 	minMouseDist: 1,
+	windowScrollTargetSize: 20,
 
 	defaults: {
 		handle: null,
+		filter: null,
 		axis: null,
 		ignoreButtons: true,
 
@@ -1321,9 +1451,6 @@ Garnish.Drag = Garnish.BaseDrag.extend({
 		this.helperTargets = [];
 		this.helperPositions = [];
 
-		this.getDraggee();
-		this.draggeeIndex = $.inArray(this.$draggee[0], this.$items);
-
 		// save their display style (block/table-row) so we can re-apply it later
 		this.draggeeDisplay = this.$draggee.css('display');
 
@@ -1379,35 +1506,6 @@ Garnish.Drag = Garnish.BaseDrag.extend({
 	},
 
 	/**
-	 * Get the draggee(s) based on the filter setting, with the clicked item listed first
-	 */
-	getDraggee: function()
-	{
-		switch (typeof this.settings.filter)
-		{
-			case 'function':
-			{
-				this.$draggee = this.settings.filter();
-				break;
-			}
-
-			case 'string':
-			{
-				this.$draggee = this.$items.filter(this.settings.filter);
-				break;
-			}
-
-			default:
-			{
-				this.$draggee = this.$targetItem;
-			}
-		}
-
-		// put the target item in the front of the list
-		this.$draggee = $([ this.$targetItem[0] ].concat(this.$draggee.not(this.$targetItem[0]).toArray()));
-	},
-
-	/**
 	 * Creates helper clones of the draggee(s)
 	 */
 	createHelpers: function()
@@ -1423,10 +1521,17 @@ Garnish.Drag = Garnish.BaseDrag.extend({
 				margin: 0
 			});
 
-			if (typeof this.settings.helper == 'function')
-				$draggeeHelper = this.settings.helper($draggeeHelper);
-			else if (this.settings.helper)
-				$draggeeHelper = $(this.settings.helper).append($draggeeHelper);
+			if (this.settings.helper)
+			{
+				if (typeof this.settings.helper == 'function')
+				{
+					$draggeeHelper = this.settings.helper($draggeeHelper);
+				}
+				else
+				{
+					$draggeeHelper = $(this.settings.helper).append($draggeeHelper);
+				}
+			}
 
 			$draggeeHelper.appendTo(Garnish.$bod);
 
@@ -1765,7 +1870,7 @@ Garnish.DragSort = Garnish.Drag.extend({
 			}
 		}
 
-		this.startDraggeeIndex = this.draggeeIndex;
+		this.startDraggeeIndex = $.inArray(this.$draggee[0], this.$items);
 	},
 
 	/**
@@ -2007,16 +2112,11 @@ Garnish.HUD = Garnish.Base.extend({
 
 		this.$hud = $('<div class="'+this.settings.hudClass+'" />').appendTo(Garnish.$bod);
 		this.$tip = $('<div class="'+this.settings.tipClass+'" />').appendTo(this.$hud);
-		this.$body = $('<div class="'+this.settings.bodyClass+'" />').appendTo(this.$hud).append(bodyContents)
+		this.$body = $('<div class="'+this.settings.bodyClass+'" />').appendTo(this.$hud).append(bodyContents);
+
+		this.$shade = $('<div class="hud-shade"/>').insertBefore(this.$hud);
 
 		this.show();
-
-		// Prevent clicks on the HUD from hiding itself
-		this.addListener(this.$hud, 'click', function(ev)
-		{
-			ev.stopPropagation();
-		});
-
 	},
 
 	/**
@@ -2036,6 +2136,7 @@ Garnish.HUD = Garnish.Base.extend({
 			}
 		}
 
+		this.$hud.css('top', Garnish.$win.scrollTop());
 		this.$hud.show();
 
 		// -------------------------------------------
@@ -2142,7 +2243,8 @@ Garnish.HUD = Garnish.Base.extend({
 			ev.stopPropagation();
 		}
 
-		this.addListener(Garnish.$bod, 'click', 'hide');
+		this.$shade.show();
+		this.addListener(this.$shade, 'click', 'hide');
 
 		if (this.settings.closeBtn)
 		{
@@ -2222,6 +2324,7 @@ Garnish.HUD = Garnish.Base.extend({
 	hide: function()
 	{
 		this.$hud.hide();
+		this.$shade.remove();
 		this.showing = false;
 
 		delete Garnish.HUD.activeHUDs[this._namespace];
@@ -2488,7 +2591,7 @@ Garnish.Menu = Garnish.Base.extend({
 			topClearance = btnOffsetTop - windowScrollTop;
 
 		// Is there room for the menu below the button?
-		if (bottomClearance >= btnHeight || bottomClearance >= topClearance)
+		if (bottomClearance >= menuHeight || bottomClearance >= topClearance)
 		{
 			css.top = btnOffsetBottom;
 		}
@@ -3481,6 +3584,7 @@ Garnish.NiceText = Garnish.Base.extend({
 
 		// replicate the textarea's text styles
 		this.$stage.css({
+			display: 'block',
 			position: 'absolute',
 			top: -9999,
 			left: -9999,
@@ -3492,10 +3596,10 @@ Garnish.NiceText = Garnish.Base.extend({
 		if (this.inputBoxSizing == 'border-box')
 		{
 			this.$stage.css({
-				'border-top-width':    this.$input.css('border-top-width'),
-				'border-right-width':  this.$input.css('border-right-width'),
-				'border-bottom-width': this.$input.css('border-bottom-width'),
-				'border-left-width':   this.$input.css('border-left-width'),
+				'border-top':          this.$input.css('border-top'),
+				'border-right':        this.$input.css('border-right'),
+				'border-bottom':       this.$input.css('border-bottom'),
+				'border-left':         this.$input.css('border-left'),
 				'padding-top':         this.$input.css('padding-top'),
 				'padding-right':       this.$input.css('padding-right'),
 				'padding-bottom':      this.$input.css('padding-bottom'),
@@ -3904,7 +4008,6 @@ Garnish.Select = Garnish.Base.extend({
 	mousedownX: null,
 	mousedownY: null,
 	mouseUpTimeout: null,
-	mouseUpTimeoutDuration: null,
 	callbackTimeout: null,
 
 	$focusable: null,
@@ -3938,7 +4041,6 @@ Garnish.Select = Garnish.Base.extend({
 		this.$container.data('select', this);
 
 		this.setSettings(settings, Garnish.Select.defaults);
-		this.mouseUpTimeoutDuration = (this.settings.waitForDblClick ? 300 : 0);
 
 		this.$items = $();
 		this.addItems(items);
@@ -4148,11 +4250,6 @@ Garnish.Select = Garnish.Base.extend({
 		{
 			this.selectRange($item);
 		}
-		else if (! this.isSelected($item))
-		{
-			this.deselectAll();
-			this.selectItem($item);
-		}
 	},
 
 	/**
@@ -4177,14 +4274,20 @@ Garnish.Select = Garnish.Base.extend({
 		// was this a click?
 		if (! (ev.metaKey || ev.ctrlKey) && ! ev.shiftKey && Garnish.getDist(this.mousedownX, this.mousedownY, ev.pageX, ev.pageY) < 1)
 		{
-			this.selectItem($item);
+			// If this is already selected, wait a moment to see if this is a double click before making any rash decisions
+			if (this.isSelected($item))
+			{
+				this.clearMouseUpTimeout();
 
-			// wait a moment before deselecting others
-			// to give the user a chance to double-click
-			this.clearMouseUpTimeout();
-			this.mouseUpTimeout = setTimeout($.proxy(function() {
-				this.deselectOthers($item);
-			}, this), this.mouseUpTimeoutDuration);
+				this.mouseUpTimeout = setTimeout($.proxy(function() {
+					this.deselectOthers($item);
+				}, this), 300);
+			}
+			else
+			{
+				this.deselectAll();
+				this.selectItem($item);
+			}
 		}
 	},
 
@@ -4754,7 +4857,7 @@ Garnish.Select = Garnish.Base.extend({
 			{
 				this.callbackTimeout = null;
 				this.settings.onSelectionChange();
-			}, this), 300);
+			}, this), 1);
 		}
 	},
 
@@ -4772,7 +4875,6 @@ Garnish.Select = Garnish.Base.extend({
 		multi: false,
 		vertical: false,
 		horizontal: false,
-		waitForDblClick: false,
 		arrowsChangeSelection: true,
 		handle: null,
 		filter: null,

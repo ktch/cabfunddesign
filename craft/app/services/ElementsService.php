@@ -83,6 +83,10 @@ class ElementsService extends BaseApplicationComponent
 			{
 				$query->order($criteria->order);
 			}
+			else if ($subquery->getOrder())
+			{
+				$query->order($subquery->getOrder());
+			}
 
 			if ($criteria->offset)
 			{
@@ -96,49 +100,67 @@ class ElementsService extends BaseApplicationComponent
 
 			$result = $query->queryAll();
 
-			if ($criteria->search && $scoredSearchResults)
+			if ($result)
 			{
-				$searchPositions = array();
-
-				foreach ($result as $row)
+				if ($criteria->search && $scoredSearchResults)
 				{
-					$searchPositions[] = array_search($row['id'], $filteredElementIds);
+					$searchPositions = array();
+
+					foreach ($result as $row)
+					{
+						$searchPositions[] = array_search($row['id'], $filteredElementIds);
+					}
+
+					array_multisort($searchPositions, $result);
 				}
 
-				array_multisort($searchPositions, $result);
-			}
-
-			if ($justIds)
-			{
-				foreach ($result as $row)
+				if ($justIds)
 				{
-					$elements[] = $row['id'];
+					foreach ($result as $row)
+					{
+						$elements[] = $row['id'];
+					}
 				}
-			}
-			else
-			{
-				$elementType = $criteria->getElementType();
-				$indexBy = $criteria->indexBy;
-
-				foreach ($result as $row)
+				else
 				{
-					// The locale column might be null since the element_i18n table was left-joined into the query,
-					// In that case it should be removed from the $row array so that the default value can be used.
-					if (!$row['locale'])
+					$elementType = $criteria->getElementType();
+					$indexBy = $criteria->indexBy;
+					$lastElement = null;
+
+					foreach ($result as $row)
 					{
-						unset($row['locale']);
+						// The locale column might be null since the element_i18n table was left-joined into the query,
+						// In that case it should be removed from the $row array so that the default value can be used.
+						if (!$row['locale'])
+						{
+							unset($row['locale']);
+						}
+
+						$element = $elementType->populateElementModel($row);
+
+						if ($indexBy)
+						{
+							$elements[$element->$indexBy] = $element;
+						}
+						else
+						{
+							$elements[] = $element;
+						}
+
+						if ($lastElement)
+						{
+							$lastElement->setNext($element);
+							$element->setPrev($element);
+						}
+						else
+						{
+							$element->setPrev(false);
+						}
+
+						$lastElement = $element;
 					}
 
-					$element = $elementType->populateElementModel($row);
-
-					if ($indexBy)
-					{
-						$elements[$element->$indexBy] = $element;
-					}
-					else
-					{
-						$elements[] = $element;
-					}
+					$lastElement->setNext(false);
 				}
 			}
 		}
@@ -263,7 +285,7 @@ class ElementsService extends BaseApplicationComponent
 
 				foreach ($statuses as $status)
 				{
-					$status = strtolower($status);
+					$status = mb_strtolower($status);
 
 					switch ($status)
 					{
@@ -435,6 +457,138 @@ class ElementsService extends BaseApplicationComponent
 	public function getElementType($class)
 	{
 		return craft()->components->getComponentByTypeAndClass(ComponentType::Element, $class);
+	}
+
+	// Misc
+	// ====
+
+	/**
+	 * Parses a string for element reference tags.
+	 *
+	 * @param string $str
+	 * @return string|array
+	 */
+	public function parseRefs($str)
+	{
+		if (strpos($str, '{') !== false)
+		{
+			global $refTagsByElementType;
+			$refTagsByElementType = array();
+
+			$str = preg_replace_callback('/\{(\w+)\:([^\:\}]+)(?:\:([^\:\}]+))?\}/', function($matches)
+			{
+				global $refTagsByElementType;
+
+				$elementTypeHandle = ucfirst($matches[1]);
+				$token = '{'.StringHelper::randomString(9).'}';
+
+				$refTagsByElementType[$elementTypeHandle][] = array('token' => $token, 'matches' => $matches);
+
+				return $token;
+			}, $str);
+
+			if ($refTagsByElementType)
+			{
+				$search = array();
+				$replace = array();
+
+				$things = array('id', 'ref');
+
+				foreach ($refTagsByElementType as $elementTypeHandle => $refTags)
+				{
+					$elementType = craft()->elements->getElementType($elementTypeHandle);
+
+					if (!$elementType)
+					{
+						// Just put the ref tags back the way they were
+						foreach ($refTags as $refTag)
+						{
+							$search[] = $refTag['token'];
+							$replace[] = $refTag['matches'][0];
+						}
+					}
+					else
+					{
+						$refTagsById = array();
+						$refTagsByRef = array();
+
+						foreach ($refTags as $refTag)
+						{
+							// Searching by ID?
+							if (is_numeric($refTag['matches'][2]))
+							{
+								$refTagsById[$refTag['matches'][2]][] = $refTag;
+							}
+							else
+							{
+								$refTagsByRef[$refTag['matches'][2]][] = $refTag;
+							}
+						}
+
+						// Things are about to get silly...
+						foreach ($things as $thing)
+						{
+							$refTagsByThing = ${'refTagsBy'.ucfirst($thing)};
+
+							if ($refTagsByThing)
+							{
+								$criteria = craft()->elements->getCriteria($elementTypeHandle);
+								$criteria->$thing = array_keys($refTagsByThing);
+								$elements = $criteria->find();
+
+								$elementsByThing = array();
+
+								foreach ($elements as $element)
+								{
+									$elementsByThing[$element->$thing] = $element;
+								}
+
+								foreach ($refTagsByThing as $thingVal => $refTags)
+								{
+									if (isset($elementsByThing[$thingVal]))
+									{
+										$element = $elementsByThing[$thingVal];
+									}
+									else
+									{
+										$element = false;
+									}
+
+									foreach($refTags as $refTag)
+									{
+										$search[] = $refTag['token'];
+
+										if ($element)
+										{
+											if (!empty($refTag['matches'][3]) && isset($element->{$refTag['matches'][3]}))
+											{
+												$value = (string) $element->{$refTag['matches'][3]};
+												$replace[] = $this->parseRefs($value);
+											}
+											else
+											{
+												// Default to the URL
+												$replace[] = $element->getUrl();
+											}
+										}
+										else
+										{
+											$replace[] = $refTag['matches'][0];
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+				$str = str_replace($search, $replace, $str);
+			}
+
+			unset ($refTagsByElementType);
+		}
+
+		return $str;
 	}
 
 	// Private functions

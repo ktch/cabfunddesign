@@ -30,9 +30,9 @@ class ModelHelper
 		AttributeType::DateTime   => array('column' => ColumnType::DateTime),
 		AttributeType::Email      => array('minLength' => 5, 'column' => ColumnType::Varchar),
 		AttributeType::Enum       => array('values' => array(), 'column' => ColumnType::Enum),
-		AttributeType::Handle     => array('reservedWords' => 'id,dateCreated,dateUpdated,uid,title', 'column' => ColumnType::Char),
+		AttributeType::Handle     => array('maxLength' => 255, 'reservedWords' => 'id,dateCreated,dateUpdated,uid,title', 'column' => ColumnType::Varchar),
 		AttributeType::Locale     => array('column' => ColumnType::Locale),
-		AttributeType::Name       => array('maxLength' => 100, 'column' => ColumnType::Varchar),
+		AttributeType::Name       => array('maxLength' => 255, 'column' => ColumnType::Varchar),
 		AttributeType::Number     => array('min' => null, 'max' => null, 'decimals' => 0),
 		AttributeType::SortOrder  => array('column' => ColumnType::TinyInt),
 		AttributeType::Template   => array('maxLength' => 500, 'column' => ColumnType::Varchar),
@@ -146,7 +146,7 @@ class ModelHelper
 
 		// Figure out the max length
 		$maxAbsSize = intval($config['unsigned'] ? $config['max'] : max(abs($config['min']), abs($config['max'])));
-		$config['length'] = ($maxAbsSize ? strlen($maxAbsSize) : 0) + $config['decimals'];
+		$config['length'] = ($maxAbsSize ? mb_strlen($maxAbsSize) : 0) + $config['decimals'];
 
 		// Decimal or int?
 		if ($config['decimals'] > 0)

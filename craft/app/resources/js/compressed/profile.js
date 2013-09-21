@@ -1,10 +1,9 @@
-/*!
- * Craft by Pixel & Tonic
- *
- * @package   Craft
- * @author    Pixel & Tonic, Inc.
- * @copyright Copyright (c) 2013, Pixel & Tonic, Inc.
- * @license   http://buildwithcraft.com/license Craft License Agreement
- * @link      http://buildwithcraft.com
- */
-(function(d){var c=null;var b={postParameters:{userId:d(".user-photo").attr("data-user")},modalClass:"profile-image-modal",uploadAction:"users/uploadUserPhoto",deleteMessage:Craft.t("Are you sure you want to delete this photo?"),deleteAction:"users/deleteUserPhoto",cropAction:"users/cropUserPhoto",areaToolOptions:{aspectRatio:"1:1",initialRectangle:{mode:"auto"}},onImageSave:function(f){e(f)},onImageDelete:function(f){e(f)}};function e(f){if(typeof f.html!="undefined"){d(".user-photo").replaceWith(f.html);var g=d(".user-photo>.current-photo").css("background-image").replace(/^url\(/,"").replace(/\)$/,"");d("#account-menu").find("img").attr("src",g);a()}}function a(){b.uploadButton=d(".user-photo-controls .upload-photo");b.deleteButton=d(".user-photo-controls .delete-photo");c=new Craft.ImageUpload(b)}a()})(jQuery);
+/*
+ Copyright (c) 2013, Pixel & Tonic, Inc.
+ @license   http://buildwithcraft.com/license Craft License Agreement
+ @link      http://buildwithcraft.com
+*/
+(function(b){function d(a){"undefined"!=typeof a.html&&(b(".user-photo").replaceWith(a.html),a=b(".user-photo>.current-photo").css("background-image").replace(/^url\(/,"").replace(/\)$/,""),b("#account-menu").find("img").attr("src",a),e())}function e(){c.uploadButton=b(".user-photo-controls .upload-photo");c.deleteButton=b(".user-photo-controls .delete-photo");new Craft.ImageUpload(c)}var c={postParameters:{userId:b(".user-photo").attr("data-user")},modalClass:"profile-image-modal",uploadAction:"users/uploadUserPhoto",
+deleteMessage:Craft.t("Are you sure you want to delete this photo?"),deleteAction:"users/deleteUserPhoto",cropAction:"users/cropUserPhoto",areaToolOptions:{aspectRatio:"1:1",initialRectangle:{mode:"auto"}},onImageSave:function(a){d(a)},onImageDelete:function(a){d(a)}};e()})(jQuery);
+
+//# sourceMappingURL=profile.min.map

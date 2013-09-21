@@ -17,17 +17,6 @@ namespace Craft;
 class FeedsService extends BaseApplicationComponent
 {
 	/**
-	 *
-	 */
-	public function init()
-	{
-		parent::init();
-
-		// Import this here to ensure that libs like SimplePie are using our version of the class and not any servers's random version.
-		require_once(Craft::getPathOfAlias('system.vendors.idna_convert').DIRECTORY_SEPARATOR.'idna_convert.class.php');
-	}
-
-	/**
 	 * Returns the items for the Feed widget.
 	 *
 	 * @param string|array $url
@@ -45,7 +34,6 @@ class FeedsService extends BaseApplicationComponent
 			return $items;
 		}
 
-		$this->_registerSimplePieAutoloader();
 		$feed = new \SimplePie();
 		$feed->set_feed_url($url);
 		$feed->set_cache_location(craft()->path->getCachePath());
@@ -289,25 +277,5 @@ class FeedsService extends BaseApplicationComponent
 		}
 
 		return $categories;
-	}
-
-	/**
-	 * Registers the SimplePie autoloader.
-	 *
-	 * @access private
-	 */
-	private function _registerSimplePieAutoloader()
-	{
-		if (!class_exists('\SimplePie_Autoloader', false))
-		{
-			require_once craft()->path->getLibPath().'SimplePie/autoloader.php';
-			Craft::registerAutoloader(array(new \SimplePie_Autoloader, 'autoload'));
-
-			// Did it work?
-			if (!class_exists('SimplePie'))
-			{
-				throw new Exception(Craft::t('The SimplePie autoloader was not registered properly.'));
-			}
-		}
 	}
 }

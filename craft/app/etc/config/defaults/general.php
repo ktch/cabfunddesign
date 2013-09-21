@@ -32,9 +32,19 @@ return array(
 'activateAccountPath' => 'activate',
 
 /**
- * The URI Craft should redirect to when user account activation fails.  Note that this only affects front-end site requests.
+ * Deprecated.  Use 'activateAccountFailurePath' instead.
  */
 'activateFailurePath' => '',
+
+/**
+ * The URI Craft should redirect to when user account activation fails.  Note that this only affects front-end site requests.
+ */
+'activateAccountFailurePath' => '',
+
+/**
+ * The URI Craft should redirect to when account activation is successful.  Note that this only affects front-end site requests.
+ */
+'activateAccountSuccessPath' => '',
 
 /**
  * A list of file extensions that Craft will allow when a user is uploading files.
@@ -45,6 +55,17 @@ return array(
  *  Whether Craft should backup the database when updating. This applies to both auto and manual updates.
  */
 'backupDbOnUpdate' => true,
+
+/**
+ * The higher the cost value, the longer it takes to generate a password hash and to verify against it. Therefore, higher cost slows down a brute-force attack.
+ *
+ * For best protection against brute force attacks, set it to the highest value that is tolerable on production servers.
+ *
+ * The time taken to compute the hash doubles for every increment by one for this value.
+ *
+ * For example, if the hash takes 1 second to compute when the value is 14 then the compute time varies as 2^(value - 14) seconds.
+ */
+'blowfishHashCost' => 13,
 
 /**
  * The length of time Craft will keep things cached in craft/storage/runtime/.
@@ -110,6 +131,11 @@ return array(
 'environmentVariables' => array(),
 
 /**
+ * If set to true, Craft will lazy-load transforms upon page load. If set to false, Craft will generate transforms when it's aware of it being requested.
+ */
+'generateTransformsAfterPageLoad' => true,
+
+/**
  *The template filenames Craft will look for within a directory to represent the directory’s “index” template when matching a template path to a file on the front end.
  */
 'indexTemplateFilenames' => array('index'),
@@ -130,6 +156,11 @@ return array(
  * The URI Craft should use for user logout.  Note that this only affects front-end site requests.
  */
 'logoutPath' => 'logout',
+
+/**
+ * The maximum dimension size to use when caching images from external sources to use in transforms. Set to 0 to never cache them.
+ */
+'maxCachedCloudImageSize' => 2000,
 
 /**
  * The number of invalid login attempts Craft will allow within the specified duration before the account gets locked.
@@ -172,14 +203,6 @@ return array(
  */
 'phpMaxMemoryLimit' => '256M',
 
-// PHPPass Config
-/**
- * Controls the number of iterations for key stretching. A setting of 8 means the hash algorithm will be applied 2^8 = 256 times.
- *
- * This setting should be kept between 4 and 31.
- */
-'phpPass-iterationCount' => 8,
-
 /**
  * The amount of time Craft will remember a username and pre-populate it on the CP login page.
  *
@@ -210,7 +233,7 @@ return array(
 
 
 /**
- * The URI segment Craft should look for when determining if the current request should route to a resource file, either in craft/app/resources/ or a plugin’s resources/ folder.
+ * The URI segment Craft should use for resource URLs on the front end.
  */
 'resourceTrigger' => 'resources',
 

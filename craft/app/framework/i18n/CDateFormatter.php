@@ -5,7 +5,7 @@
  * @author Wei Zhuo <weizhuo[at]gmail[dot]com>
  * @author Qiang Xue <qiang.xue@gmail.com>
  * @link http://www.yiiframework.com/
- * @copyright Copyright &copy; 2008-2011 Yii Software LLC
+ * @copyright 2008-2013 Yii Software LLC
  * @license http://www.yiiframework.com/license/
  */
 
@@ -17,7 +17,7 @@
  * is associated with. For example, month names and weekday names may vary
  * under different locales, which yields different formatting results.
  * The patterns that CDateFormatter recognizes are as defined in
- * {@link http://www.unicode.org/reports/tr35/#Date_Format_Patterns CLDR}.
+ * {@link http://www.unicode.org/reports/tr35/tr35-dates.html#Date_Format_Patterns CLDR}.
  *
  * CDateFormatter supports predefined patterns as well as customized ones:
  * <ul>
@@ -81,7 +81,7 @@ class CDateFormatter extends CComponent
 
 	/**
 	 * Formats a date according to a customized pattern.
-	 * @param string $pattern the pattern (See {@link http://www.unicode.org/reports/tr35/#Date_Format_Patterns})
+	 * @param string $pattern the pattern (See {@link http://www.unicode.org/reports/tr35/tr35-dates.html#Date_Format_Patterns})
 	 * @param mixed $time UNIX timestamp or a string in strtotime format
 	 * @return string formatted date time. Null if $time is null. (the null value check is available since Yii 1.1.11)
 	 */
@@ -219,13 +219,14 @@ class CDateFormatter extends CComponent
 
 	/**
 	 * Get the month.
- 	 * "M" will return integer 1 through 12;
- 	 * "MM" will return two digits month number with necessary zero padding, e.g. 05;
- 	 * "MMM" will return the abrreviated month name, e.g. "Jan";
- 	 * "MMMM" will return the full month name, e.g. "January";
- 	 * "MMMMM" will return the narrow month name, e.g. "J";
+	 * "M" will return integer 1 through 12;
+	 * "MM" will return two digits month number with necessary zero padding, e.g. 05;
+	 * "MMM" will return the abrreviated month name, e.g. "Jan";
+	 * "MMMM" will return the full month name, e.g. "January";
+	 * "MMMMM" will return the narrow month name, e.g. "J";
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException if "month" pattern is unknown
 	 * @return string month name
 	 */
 	protected function formatMonth($pattern,$date)
@@ -263,6 +264,7 @@ class CDateFormatter extends CComponent
  	 * "d" for non-padding, "dd" will always return 2 digits day numbers, e.g. 05.
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException if "day" pattern is unknown
 	 * @return string day of the month
 	 */
 	protected function formatDay($pattern,$date)
@@ -280,6 +282,7 @@ class CDateFormatter extends CComponent
 	 * Get the day in the year, e.g. [1-366]
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException is "dayInYear" pattern is unknown
 	 * @return integer hours in AM/PM format.
 	 */
 	protected function formatDayInYear($pattern,$date)
@@ -295,6 +298,7 @@ class CDateFormatter extends CComponent
 	 * Get day of week in the month, e.g. 2nd Wed in July.
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException if "dayInMonth" pattern is unknown
 	 * @return integer day in month
 	 * @see http://www.unicode.org/reports/tr35/#Date_Format_Patterns
 	 */
@@ -313,6 +317,7 @@ class CDateFormatter extends CComponent
  	 * "EEEEE" will return the narrow week day name, e.g. "T";
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException if "dayInWeek" pattern is unknown
 	 * @return string day of the week.
 	 * @see http://www.unicode.org/reports/tr35/#Date_Format_Patterns
 	 */
@@ -351,6 +356,7 @@ class CDateFormatter extends CComponent
 	 * Get the AM/PM designator, 12 noon is PM, 12 midnight is AM.
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException if "period" pattern is unknown
 	 * @return string AM or PM designator
 	 */
 	protected function formatPeriod($pattern,$date)
@@ -371,6 +377,7 @@ class CDateFormatter extends CComponent
 	 * "H" for non-padding, "HH" will always return 2 characters.
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException if "hour24" pattern is unknown
 	 * @return string hours in 24 hour format.
 	 */
 	protected function formatHour24($pattern,$date)
@@ -389,6 +396,7 @@ class CDateFormatter extends CComponent
 	 * "h" for non-padding, "hh" will always return 2 characters.
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException if "hour12" pattern is unknown
 	 * @return string hours in 12 hour format.
 	 */
 	protected function formatHour12($pattern,$date)
@@ -408,6 +416,7 @@ class CDateFormatter extends CComponent
 	 * 'k' for non-padding, and 'kk' with 2 characters padding.
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException if "hourInDay" pattern is unknown
 	 * @return integer hours [1-24]
 	 */
 	protected function formatHourInDay($pattern,$date)
@@ -426,6 +435,7 @@ class CDateFormatter extends CComponent
 	 * "K" for non-padding, "KK" will always return 2 characters.
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException if "hourInPeriod" pattern is unknown
 	 * @return integer hours in AM/PM format.
 	 */
 	protected function formatHourInPeriod($pattern,$date)
@@ -444,6 +454,7 @@ class CDateFormatter extends CComponent
 	 * "m" for non-padding, "mm" will always return 2 characters.
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException if "minutes" pattern is unknown
 	 * @return string minutes.
 	 */
 	protected function formatMinutes($pattern,$date)
@@ -462,6 +473,7 @@ class CDateFormatter extends CComponent
 	 * "s" for non-padding, "ss" will always return 2 characters.
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException if "seconds" pattern is unknown
 	 * @return string seconds
 	 */
 	protected function formatSeconds($pattern,$date)
@@ -479,6 +491,7 @@ class CDateFormatter extends CComponent
 	 * Get the week in the year.
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException if "weekInYear" pattern is unknown
 	 * @return integer week in year
 	 */
 	protected function formatWeekInYear($pattern,$date)
@@ -493,12 +506,16 @@ class CDateFormatter extends CComponent
 	 * Get week in the month.
 	 * @param array $pattern result of {@link CTimestamp::getdate}.
 	 * @param string $date a pattern.
+	 * @throws CException if "weekInMonth" pattern is unknown
 	 * @return integer week in month
 	 */
 	protected function formatWeekInMonth($pattern,$date)
 	{
 		if($pattern==='W')
-			return @date('W',@mktime(0,0,0,$date['mon'], $date['mday'],$date['year']))-date('W', mktime(0,0,0,$date['mon'],1,$date['year']))+1;
+		{
+			$weekDay=date('N',mktime(0,0,0,$date['mon'],1,$date['year']));
+			return floor(($weekDay+$date['mday']-2)/7)+1;
+		}
 		else
 			throw new CException(Yii::t('yii','The pattern for week in month must be "W".'));
 	}
@@ -507,6 +524,7 @@ class CDateFormatter extends CComponent
 	 * Get the timezone of the server machine.
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException if "timeZone" pattern is unknown
 	 * @return string time zone
 	 * @todo How to get the timezone for a different region?
 	 */
@@ -524,6 +542,7 @@ class CDateFormatter extends CComponent
 	 * Get the era. i.e. in gregorian, year > 0 is AD, else BC.
 	 * @param string $pattern a pattern.
 	 * @param array $date result of {@link CTimestamp::getdate}.
+	 * @throws CException if "era" pattern is unknown
 	 * @return string era
 	 * @todo How to support multiple Eras?, e.g. Japanese.
 	 */

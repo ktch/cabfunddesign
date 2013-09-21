@@ -1,4 +1,4 @@
-/*!
+/**
  * Craft by Pixel & Tonic
  *
  * @package   Craft
@@ -95,7 +95,7 @@ Craft.EntryPreviewMode = Garnish.Base.extend({
 			this.$iframe = $('<iframe id="previewmode-iframe" frameborder="0" />').appendTo(this.$iframeContainer);
 
 			var $header = $('<header class="header"></header>').appendTo(this.$editor),
-				$closeBtn = $('<div class="btn" data-icon="x" title="'+Craft.t('Close')+'"></div>').appendTo($header),
+				$closeBtn = $('<div class="btn">'+Craft.t('Done')+'</div>').appendTo($header),
 				$heading = $('<h1>'+Craft.t('Live Preview')+'</h1>').appendTo($header);
 
 			this.addListener($closeBtn, 'click', 'hidePreviewMode');
@@ -104,7 +104,7 @@ Craft.EntryPreviewMode = Garnish.Base.extend({
 		// Move all the fields into the editor rather than copying them
 		// so any JS that's referencing the elements won't break.
 		this.fields = [];
-		var $fields = this.$form.children('.field').add(this.$form.children(':not(#entry-settings)').children('.field'));
+		var $fields = this.$form.find('.field').not($('#entry-settings').find('.field'));
 
 		for (var i= 0; i < $fields.length; i++)
 		{
@@ -274,7 +274,7 @@ Craft.EntryPreviewMode = Garnish.Base.extend({
 		{
 			return false;
 		}
-	},
+	}
 },
 {
 	formWidth: 400

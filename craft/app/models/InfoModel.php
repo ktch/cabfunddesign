@@ -34,6 +34,7 @@ class InfoModel extends BaseModel
 			'on'          => AttributeType::Bool,
 			'maintenance' => AttributeType::Bool,
 			'track'       => array(AttributeType::String, 'maxLength' => 40, 'column' => ColumnType::Varchar, 'required' => true),
+			'uid'         => AttributeType::String,
 		);
 	}
 

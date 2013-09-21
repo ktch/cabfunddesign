@@ -29,7 +29,7 @@ class UrlValidator extends \CUrlValidator
 	public function validateValue($value)
 	{
 		// Ignore URLs with any environment variables in them
-		if (strpos($value, '{') !== false)
+		if (mb_strpos($value, '{') !== false)
 		{
 			return $value;
 		}

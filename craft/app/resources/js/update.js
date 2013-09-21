@@ -1,4 +1,4 @@
-/*!
+/**
  * Craft by Pixel & Tonic
  *
  * @package   Craft
@@ -53,18 +53,24 @@ Craft.Updater = Garnish.Base.extend({
 			data: this.data
 		};
 
-		Craft.postActionRequest(action, data, $.proxy(this, 'onSuccessResponse'), $.proxy(this, 'onErrorResponse'));
+		Craft.postActionRequest(action, data, $.proxy(function(response, textStatus) {
+
+			if (textStatus == 'success' && response.success)
+			{
+				this.onSuccessResponse(response);
+			}
+			else
+			{
+				this.onErrorResponse();
+			}
+
+		}, this), {
+			complete: $.noop
+		});
 	},
 
 	onSuccessResponse: function(response)
 	{
-		if (!response.success && !response.error)
-		{
-			// Bad request, even though it's not returning with a 500 status
-			this.onErrorResponse();
-			return;
-		}
-
 		if (response.data)
 		{
 			this.data = response.data;

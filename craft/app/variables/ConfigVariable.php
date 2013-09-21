@@ -24,7 +24,7 @@ class ConfigVariable
 	 */
 	function __isset($name)
 	{
-		return isset(craft()->params['generalConfig'][$name]);
+		return isset(craft()->config->generalConfig[$name]);
 	}
 
 	/**
@@ -46,5 +46,32 @@ class ConfigVariable
 	public function usePathInfo()
 	{
 		return craft()->config->usePathInfo();
+	}
+
+	/**
+	 * Returns whether generated URLs should omit 'index.php'.
+	 *
+	 * @return bool
+	 */
+	public function omitScriptNameInUrls()
+	{
+		return craft()->config->omitScriptNameInUrls();
+	}
+
+	/**
+	 * Returns the CP resource trigger word.
+	 *
+	 * @return string
+	 */
+	public function resourceTrigger()
+	{
+		if (craft()->request->isCpRequest())
+		{
+			return 'resources';
+		}
+		else
+		{
+			return craft()->config->get('resourceTrigger');
+		}
 	}
 }

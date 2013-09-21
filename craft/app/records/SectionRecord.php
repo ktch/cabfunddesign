@@ -31,12 +31,12 @@ class SectionRecord extends BaseRecord
 	protected function defineAttributes()
 	{
 		return array(
-			'name'          => array(AttributeType::Name, 'required' => true),
-			'handle'        => array(AttributeType::Handle, 'maxLength' => 45, 'required' => true),
-			'titleLabel'    => array(AttributeType::String, 'required' => true, 'default' => 'Title'),
-			'hasUrls'       => array(AttributeType::Bool, 'default' => true),
-			'template'      => AttributeType::Template,
-			'fieldLayoutId' => AttributeType::Number,
+			'name'     => array(AttributeType::Name, 'required' => true),
+			'handle'   => array(AttributeType::Handle, 'required' => true),
+			'type'     => array(AttributeType::Enum, 'values' => array(SectionType::Single, SectionType::Channel, SectionType::Structure), 'default' => SectionType::Channel, 'required' => true),
+			'hasUrls'  => array(AttributeType::Bool, 'default' => true),
+			'template' => AttributeType::Template,
+			'maxDepth' => array(AttributeType::Number, 'min' => 1),
 		);
 	}
 
@@ -46,9 +46,7 @@ class SectionRecord extends BaseRecord
 	public function defineRelations()
 	{
 		return array(
-			'fieldLayout' => array(static::BELONGS_TO, 'FieldLayoutRecord', 'onDelete' => static::SET_NULL),
-			'locales'     => array(static::HAS_MANY, 'SectionLocaleRecord', 'sectionId'),
-			'entries'     => array(static::HAS_MANY, 'EntryRecord', 'sectionId'),
+			'locales' => array(static::HAS_MANY, 'SectionLocaleRecord', 'sectionId'),
 		);
 	}
 

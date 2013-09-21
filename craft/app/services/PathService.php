@@ -198,7 +198,7 @@ class PathService extends BaseApplicationComponent
 	{
 		if ($pluginHandle)
 		{
-			return $this->getPluginsPath().strtolower($pluginHandle).'/migrations/';
+			return $this->getPluginsPath().mb_strtolower($pluginHandle).'/migrations/';
 		}
 
 		return $this->getAppPath().'migrations/';
@@ -283,7 +283,7 @@ class PathService extends BaseApplicationComponent
 		// If the user has set offlinePath config item, let's use it.
 		if (($path = craft()->config->get('offlinePath')) !== null)
 		{
-			return substr($path, 0, strlen($path) - strlen(IOHelper::getFileName($path)));
+			return mb_substr($path, 0, mb_strlen($path) - mb_strlen(IOHelper::getFileName($path)));
 		}
 
 		return $this->getCpTemplatesPath();

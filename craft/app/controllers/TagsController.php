@@ -39,6 +39,12 @@ class TagsController extends BaseController
 	{
 		craft()->userSession->requireAdmin();
 
+		// Breadcrumbs
+		$variables['crumbs'] = array(
+			array('label' => Craft::t('Settings'), 'url' => UrlHelper::getUrl('settings')),
+			array('label' => Craft::t('Tags'),  'url' => UrlHelper::getUrl('settings/tags'))
+		);
+
 		if (!empty($variables['tagSetId']))
 		{
 			if (empty($variables['tagSet']))
@@ -132,15 +138,20 @@ class TagsController extends BaseController
 		$this->requireAjaxRequest();
 
 		$search = craft()->request->getPost('search');
-		$source = craft()->request->getPost('source');
+		$tagSetId = craft()->request->getPost('tagSetId');
 		$excludeIds = craft()->request->getPost('excludeIds', array());
 
-		$criteria = craft()->elements->getCriteria(ElementType::Tag, array(
-			'search' => 'name:'.$search.'*',
-			'source' => $source,
-			'id'     => 'not '.implode(',', $excludeIds)
-		));
+		$notIds = array('and');
 
+		foreach ($excludeIds as $id)
+		{
+			$notIds[] = 'not '.$id;
+		}
+
+		$criteria = craft()->elements->getCriteria(ElementType::Tag);
+		$criteria->setId  = $tagSetId;
+		$criteria->search = 'name:'.$search.'*';
+		$criteria->id     = $notIds;
 		$tags = $criteria->find();
 
 		$return = array();
@@ -157,7 +168,7 @@ class TagsController extends BaseController
 				'name' => $tag->name
 			);
 
-			$tagNameLengths[] = strlen($tag->name);
+			$tagNameLengths[] = mb_strlen($tag->name);
 
 			$normalizedName = StringHelper::normalizeKeywords($tag->name);
 
@@ -197,11 +208,10 @@ class TagsController extends BaseController
 			throw new Exception(Craft::t('No tag exists with the ID “{id}”.', array('id' => $tagId)));
 		}
 
-		$elementType = craft()->elements->getElementType(ElementType::Tag);
-
 		$html = craft()->templates->render('_includes/edit_element', array(
-			'element' => $tag,
-			'elementType' => new ElementTypeVariable($elementType)
+			'element'     => $tag,
+			'hasTitle'    => false,
+			'fieldLayout' => $tag->getSet()->getFieldLayout()
 		));
 
 		$this->returnJson(array(

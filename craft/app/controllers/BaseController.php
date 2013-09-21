@@ -27,6 +27,24 @@ abstract class BaseController extends \CController
 	protected $allowAnonymous = false;
 
 	/**
+	 * Include any route params gathered by UrlManager as controller action params.
+	 *
+	 * @return array
+	 */
+	public function getActionParams()
+	{
+		$params = parent::getActionParams();
+		$routeParams = craft()->urlManager->getRouteParams();
+
+		if (is_array($routeParams))
+		{
+			$params = array_merge($params, $routeParams);
+		}
+
+		return $params;
+	}
+
+	/**
 	 * Returns the folder containing view files for this controller.
 	 * We're overriding this since CController's version defaults $module to craft().
 	 *
@@ -87,9 +105,9 @@ abstract class BaseController extends \CController
 
 					if ($headHtml)
 					{
-						if (($endHeadPos = stripos($output, '</head>')) !== false)
+						if (($endHeadPos = mb_stripos($output, '</head>')) !== false)
 						{
-							$output = substr($output, 0, $endHeadPos) . $headHtml . substr($output, $endHeadPos);
+							$output = mb_substr($output, 0, $endHeadPos) . $headHtml . mb_substr($output, $endHeadPos);
 						}
 						else
 						{
@@ -99,9 +117,9 @@ abstract class BaseController extends \CController
 
 					if ($footHtml)
 					{
-						if (($endBodyPos = stripos($output, '</body>')) !== false)
+						if (($endBodyPos = mb_stripos($output, '</body>')) !== false)
 						{
-							$output = substr($output, 0, $endBodyPos) . $footHtml . substr($output, $endBodyPos);
+							$output = mb_substr($output, 0, $endBodyPos) . $footHtml . mb_substr($output, $endBodyPos);
 						}
 						else
 						{
@@ -214,9 +232,9 @@ abstract class BaseController extends \CController
 	/**
 	 * Respond with JSON
 	 *
-	 * @param array $var The array to JSON-encode and return
+	 * @param array|null $var The array to JSON-encode and return
 	 */
-	public function returnJson($var)
+	public function returnJson($var = array())
 	{
 		JsonHelper::sendJsonHeaders();
 		echo JsonHelper::encode($var);

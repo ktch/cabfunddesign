@@ -1,4 +1,4 @@
-/*!
+/**
  * Craft by Pixel & Tonic
  *
  * @package   Craft
@@ -38,8 +38,6 @@ Craft.Dashboard = Garnish.Base.extend({
 			this.widgets.push($widget);
 		}
 
-		this.stretchColHeights();
-
 		// setup events
 		this.addListener(Garnish.$win, 'resize', 'onWindowResize');
 
@@ -53,7 +51,6 @@ Craft.Dashboard = Garnish.Base.extend({
 	onWindowResize: function()
 	{
 		this.setCols();
-		this.stretchColHeights();
 	},
 
 	setCols: function()
@@ -150,19 +147,6 @@ Craft.Dashboard = Garnish.Base.extend({
 		}
 
 		return tallestCol;
-	},
-
-	stretchColHeights: function()
-	{
-		return;
-		var minHeight = Garnish.$win.height() - 101,
-			tallestCol = this.getTallestCol(),
-			height = Math.max(minHeight, tallestCol.getHeight());
-
-		for (var i = 0; i < this.cols.length; i++)
-		{
-			this.cols[i].setHeight(height);
-		}
 	},
 
 	onWidgetMove: function()

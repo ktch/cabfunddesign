@@ -41,7 +41,6 @@ class UserModel extends BaseElementModel
 			'lastName'               => AttributeType::String,
 			'email'                  => AttributeType::Email,
 			'password'               => AttributeType::String,
-			'encType'                => AttributeType::String,
 			'preferredLocale'        => AttributeType::Locale,
 			'admin'                  => AttributeType::Bool,
 			'status'                 => AttributeType::Enum,
@@ -55,6 +54,16 @@ class UserModel extends BaseElementModel
 			'newPassword'            => AttributeType::String,
 			'currentPassword'        => AttributeType::String,
 		));
+	}
+
+	/**
+	 * Returns the reference string to this element.
+	 *
+	 * @return string|null
+	 */
+	public function getRef()
+	{
+		return $this->username;
 	}
 
 	/**
@@ -176,6 +185,23 @@ class UserModel extends BaseElementModel
 		{
 			return UrlHelper::getResourceUrl('userphotos/'.$this->username.'/'.$size.'/'.$this->photo);
 		}
+	}
+
+	/**
+	 * Returns the URL to the thumbnail for this user for a given size.
+	 *
+	 * @param int $size
+	 * @return false|null|string
+	 */
+	public function getThumbUrl($size = 100)
+	{
+		$url = $this->getPhotoUrl($size);
+		if (!$url)
+		{
+			$url = UrlHelper::getResourceUrl('defaultuserphoto/'.$size);
+		}
+
+		return $url;
 	}
 
 	/**

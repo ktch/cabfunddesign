@@ -22,6 +22,9 @@ abstract class BaseElementModel extends BaseModel
 	private $_preppedContent;
 	private $_tags;
 
+	private $_nextElement;
+	private $_prevElement;
+
 	const ENABLED  = 'enabled';
 	const DISABLED = 'disabled';
 	const ARCHIVED = 'archived';
@@ -75,6 +78,27 @@ abstract class BaseElementModel extends BaseModel
 		{
 			return UrlHelper::getSiteUrl($this->uri);
 		}
+	}
+
+	/**
+	 * Returns an anchor prefilled with this element's URL and title.
+	 *
+	 * @return \Twig_Markup
+	 */
+	public function getLink()
+	{
+		$link = '<a href="'.$this->getUrl().'">'.$this->__toString().'</a>';
+		$charset = craft()->templates->getTwig()->getCharset();
+		return new \Twig_Markup($link, $charset);
+	}
+
+	/**
+	 * Returns the reference string to this element.
+	 *
+	 * @return string|null
+	 */
+	public function getRef()
+	{
 	}
 
 	/**
@@ -136,9 +160,16 @@ abstract class BaseElementModel extends BaseModel
 	 * @param mixed $criteria
 	 * @return ElementCriteriaModel|null
 	 */
-	public function getNext($criteria = null)
+	public function getNext($criteria = false)
 	{
-		return $this->_getRelativeElement($criteria, 1);
+		if ($criteria !== false || !isset($this->_nextElement))
+		{
+			return $this->_getRelativeElement($criteria, 1);
+		}
+		else if ($this->_nextElement !== false)
+		{
+			return $this->_nextElement;
+		}
 	}
 
 	/**
@@ -149,7 +180,34 @@ abstract class BaseElementModel extends BaseModel
 	 */
 	public function getPrev($criteria = null)
 	{
-		return $this->_getRelativeElement($criteria, -1);
+		if ($criteria !== false || !isset($this->_prevElement))
+		{
+			return $this->_getRelativeElement($criteria, -1);
+		}
+		else if ($this->_prevElement !== false)
+		{
+			return $this->_prevElement;
+		}
+	}
+
+	/**
+	 * Sets the default next element.
+	 *
+	 * @param BaseElementModel|false $element
+	 */
+	public function setNext($element)
+	{
+		$this->_nextElement = $element;
+	}
+
+	/**
+	 * Sets the default previous element.
+	 *
+	 * @param BaseElementModel|false $element
+	 */
+	public function setPrev($element)
+	{
+		$this->_prevElement = $element;
 	}
 
 	/**
@@ -328,7 +386,7 @@ abstract class BaseElementModel extends BaseModel
 	{
 		if ($this->id)
 		{
-			if (!($criteria instanceof ElementCriteriaModel))
+			if (!$criteria instanceof ElementCriteriaModel)
 			{
 				$criteria = craft()->elements->getCriteria($this->elementType, $criteria);
 			}
@@ -338,6 +396,10 @@ abstract class BaseElementModel extends BaseModel
 
 			if ($key !== false && isset($elementIds[$key+$dir]))
 			{
+				// Create a new criteria regardless of whether they passed in an ElementCriteriaModel
+				// so that our 'id' modification doesn't stick
+				$criteria = craft()->elements->getCriteria($this->elementType, $criteria);
+
 				$criteria->id = $elementIds[$key+$dir];
 				return $criteria->first();
 			}

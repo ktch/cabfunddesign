@@ -1,4 +1,4 @@
-/*!
+/**
  * Craft by Pixel & Tonic
  *
  * @package   Craft
@@ -171,16 +171,18 @@ Craft.Tool = Garnish.Base.extend({
 			params: params
 		};
 
-		Craft.postActionRequest('tools/performAction', data, $.proxy(this, 'onActionResponse'));
+		Craft.postActionRequest('tools/performAction', data, $.proxy(this, 'onActionResponse'), {
+			complete: $.noop
+		});
 	},
 
-	onActionResponse: function(response)
+	onActionResponse: function(response, textStatus)
 	{
 		this.loadingActions--;
 		this.completedActions++;
 
 		// Add any new batches to the queue?
-		if (response && typeof response.batches != 'undefined' && response.batches)
+		if (textStatus == 'success' && response && response.batches)
 		{
 			for (var i = 0; i < response.batches.length; i++)
 			{
@@ -211,7 +213,7 @@ Craft.Tool = Garnish.Base.extend({
 			}
 			else
 			{
-				if (response && typeof response.backupFile != 'undefined' && response.backupFile)
+				if (response && response.backupFile)
 				{
 					var $iframe = $('<iframe/>', {'src' : Craft.getActionUrl('tools/downloadBackupFile', {'fileName':response.backupFile}) }).hide();
 					this.$form.append($iframe);

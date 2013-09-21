@@ -61,7 +61,7 @@ class SectionsVariable
 	/**
 	 * Returns a section by its ID.
 	 *
-	 * @param $sectionId
+	 * @param int $sectionId
 	 * @return SectionModel|null
 	 */
 	public function getSectionById($sectionId)
@@ -72,7 +72,7 @@ class SectionsVariable
 	/**
 	 * Returns a section by its handle.
 	 *
-	 * @param $handle
+	 * @param string $handle
 	 * @return SectionModel|null
 	 */
 	public function getSectionByHandle($handle)

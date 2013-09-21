@@ -16,6 +16,20 @@ namespace Craft;
  */
 class ConfigService extends BaseApplicationComponent
 {
+	/**
+	 * The general configuration names and values as defined in craft/app/etc/config and craft/config
+	 *
+	 * @var
+	 */
+	public $generalConfig;
+
+	/**
+	 * The database configuration names and values as defined in craft/app/etc/config and craft/config
+	 *
+	 * @var
+	 */
+	public $dbConfig;
+
 	private $_cacheDuration;
 	private $_omitScriptNameInUrls;
 	private $_usePathInfo;
@@ -35,11 +49,22 @@ class ConfigService extends BaseApplicationComponent
 		}
 		else
 		{
-			if (isset(craft()->params['generalConfig'][$item]))
+			if (isset($this->generalConfig[$item]))
 			{
-				return craft()->params['generalConfig'][$item];
+				return $this->generalConfig[$item];
 			}
 		}
+	}
+
+	/**
+	 * Sets a config item value.
+	 *
+	 * @param string $item
+	 * @param mixed $value
+	 */
+	public function set($item, $value)
+	{
+		$this->generalConfig[$item] = $value;
 	}
 
 	/**
@@ -51,9 +76,9 @@ class ConfigService extends BaseApplicationComponent
 	 */
 	public function getDbItem($item, $default = null)
 	{
-		if (isset(craft()->params['dbConfig'][$item]))
+		if (isset($this->dbConfig[$item]))
 		{
-			return craft()->params['dbConfig'][$item];
+			return $this->dbConfig[$item];
 		}
 
 		return $default;
@@ -124,10 +149,12 @@ class ConfigService extends BaseApplicationComponent
 						try
 						{
 							$baseUrl = craft()->request->getHostInfo().craft()->request->getScriptUrl();
-							$url = substr($baseUrl, 0, strrpos($baseUrl, '/')).'/testScriptNameRedirect';
-							$response = \Requests::get($url);
+							$url = mb_substr($baseUrl, 0, mb_strrpos($baseUrl, '/')).'/testScriptNameRedirect';
 
-							if ($response->success && $response->body === 'success')
+							$client = new \Guzzle\Http\Client();
+							$response = $client->get($url, array(), array('connect_timeout' => 2, 'timeout' => 4))->send();
+
+							if ($response->isSuccessful() && $response->getBody(true) === 'success')
 							{
 								$this->_omitScriptNameInUrls = 'yes';
 							}
@@ -194,9 +221,10 @@ class ConfigService extends BaseApplicationComponent
 						try
 						{
 							$url = craft()->request->getHostInfo().craft()->request->getScriptUrl().'/testPathInfo';
-							$response = \Requests::get($url);
+							$client = new \Guzzle\Http\Client();
+							$response = $client->get($url, array(), array('connect_timeout' => 2, 'timeout' => 4))->send();
 
-							if ($response->success && $response->body === 'success')
+							if ($response->isSuccessful() && $response->getBody(true) === 'success')
 							{
 								$this->_usePathInfo = 'yes';
 							}
@@ -292,71 +320,57 @@ class ConfigService extends BaseApplicationComponent
 
 	/**
 	 * Gets the set password URL for a user account.
-	 * TODO: Not proud of this... at all.
 	 *
 	 * @param       $code
 	 * @param       $uid
+	 * @param       $user
 	 * @param  bool $full
-	 * @param  null $requestType
 	 * @return string
 	 */
-	public function getSetPasswordPath($code, $uid, $full = true, $requestType = null)
+	public function getSetPasswordPath($code, $uid, $user, $full = false)
 	{
-		$cp = false;
-
-		if (!$requestType)
-		{
-			if (craft()->request->isSiteRequest())
-			{
-				$url = craft()->config->get('setPasswordPath');
-			}
-			else
-			{
-				$url = $this->getCpSetPasswordPath();
-				$cp = true;
-			}
-		}
-		else if ($requestType == 'cp')
+		if ($user->can('accessCp'))
 		{
 			$url = $this->getCpSetPasswordPath();
-			$cp = true;
-		}
-		else if ($requestType == 'site')
-		{
-			$url = craft()->config->get('setPasswordPath');
-		}
 
-		if (!$full)
-		{
-			return $url;
-		}
-
-		if ($cp)
-		{
-			if (craft()->request->isSecureConnection)
+			if ($full)
 			{
-				return UrlHelper::getCpUrl($url, array(
-					'code' => $code, 'id' => $uid
-				), 'https');
+				if (craft()->request->isSecureConnection)
+				{
+					$url = UrlHelper::getCpUrl($url, array(
+						'code' => $code, 'id' => $uid
+					), 'https');
+				}
+				else
+				{
+					$url = UrlHelper::getCpUrl($url, array(
+						'code' => $code, 'id' => $uid
+					));
+				}
 			}
-
-			return UrlHelper::getCpUrl($url, array(
-				'code' => $code, 'id' => $uid
-			));
 		}
 		else
 		{
-			if (craft()->request->isSecureConnection)
-			{
-				return UrlHelper::getUrl($url, array(
-					'code' => $code, 'id' => $uid
-				), 'https');
-			}
+			$url = craft()->config->get('setPasswordPath');
 
-			return UrlHelper::getUrl($url, array(
-				'code' => $code, 'id' => $uid
-			));
+			if ($full)
+			{
+				if (craft()->request->isSecureConnection)
+				{
+					$url = UrlHelper::getUrl($url, array(
+						'code' => $code, 'id' => $uid
+					), 'https');
+				}
+				else
+				{
+					$url = UrlHelper::getUrl($url, array(
+						'code' => $code, 'id' => $uid
+					));
+				}
+			}
 		}
+
+		return $url;
 	}
 
 	/**
@@ -392,6 +406,20 @@ class ConfigService extends BaseApplicationComponent
 	}
 
 	/**
+	 * TODO: Deprecate when we remove the 'activateFailurePath' config var.
+	 */
+	public function getActivateAccountFailurePath()
+	{
+		if ($path = craft()->config->get('activateAccountFailurePath') !== '')
+		{
+			return $path;
+		}
+
+		// Check the deprecated one.
+		return craft()->config->get('activateFailurePath');
+	}
+
+	/**
 	 * Parses a string for any environment variable tags.
 	 *
 	 * @param string $str
@@ -405,5 +433,22 @@ class ConfigService extends BaseApplicationComponent
 		}
 
 		return $str;
+	}
+
+	/**
+	 * Returns the CP resource trigger word.
+	 *
+	 * @return string
+	 */
+	public function getResourceTrigger()
+	{
+		if (craft()->request->isCpRequest())
+		{
+			return 'resources';
+		}
+		else
+		{
+			return $this->get('resourceTrigger');
+		}
 	}
 }

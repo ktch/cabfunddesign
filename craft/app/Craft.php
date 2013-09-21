@@ -241,13 +241,14 @@ class Craft extends \Yii
 
 			if ($storedSiteUrl)
 			{
+				// Parse it for environment variables
 				$storedSiteUrl = craft()->config->parseEnvironmentString($storedSiteUrl);
 
 				$port = craft()->request->getPort();
 
-				// If $port == 80, don't show it. If the port is already in the $storedSiteUrl, don't show it.
+				// If this is port 80, or the port is already a part of the stored site URL, don't worry about adding it.
 				// i.e. http://localhost:8888/craft
-				if ($port == 80 || strpos($storedSiteUrl, ':'.$port) !== false)
+				if ($port == 80 || mb_strpos($storedSiteUrl, ':'.$port) !== false)
 				{
 					$port = '';
 				}
@@ -256,7 +257,7 @@ class Craft extends \Yii
 					$port = ':'.$port;
 				}
 
-				static::$_siteUrl = rtrim($storedSiteUrl, '/').$port;
+				static::$_siteUrl = rtrim($storedSiteUrl, '/').$port.'/';
 			}
 			else
 			{
@@ -281,6 +282,17 @@ class Craft extends \Yii
 				return static::$_siteUrl;
 			}
 		}
+	}
+
+	/**
+	 * Returns the site UID.
+	 *
+	 * @static
+	 * @return string
+	 */
+	public static function getSiteUid()
+	{
+		return static::getInfo('uid');
 	}
 
 	/**
@@ -498,10 +510,10 @@ class Craft extends \Yii
 
 		$path = $rootPath.implode('/', $segs);
 
-		$folder = (substr($path, -2) == '/*');
+		$folder = (mb_substr($path, -2) == '/*');
 		if ($folder)
 		{
-			$path = substr($path, 0, -1);
+			$path = mb_substr($path, 0, -1);
 			$files = glob($path."*.php");
 			if (is_array($files) && count($files) > 0)
 			{
@@ -572,7 +584,7 @@ class Craft extends \Yii
 
 			foreach ($traces as $trace)
 			{
-				if (isset($trace['file'], $trace['line']) && strpos($trace['file'], YII_PATH) !== 0)
+				if (isset($trace['file'], $trace['line']) && mb_strpos($trace['file'], YII_PATH) !== 0)
 				{
 					$msg .= "\nin ".$trace['file'].' ('.$trace['line'].')';
 
@@ -644,8 +656,14 @@ class Craft extends \Yii
 	 */
 	private static function _importFile($file)
 	{
-		$class = __NAMESPACE__.'\\'.pathinfo($file, PATHINFO_FILENAME);
-		\Yii::$classMap[$class] = $file;
+		$file = str_replace('\\', '/', $file);
+
+		// Don't add any Composer vendor files to the class map.
+		if (strpos($file, '/app/vendor/') === false)
+		{
+			$class = __NAMESPACE__.'\\'.pathinfo($file, PATHINFO_FILENAME);
+			\Yii::$classMap[$class] = $file;
+		}
 	}
 }
 

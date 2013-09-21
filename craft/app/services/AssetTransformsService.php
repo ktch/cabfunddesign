@@ -127,9 +127,28 @@ class AssetTransformsService extends BaseApplicationComponent
 		$sourceType = craft()->assetSources->getSourceTypeById($fileModel->sourceId);
 		$imageSource = $sourceType->getImageSourcePath($fileModel);
 
+		$deleteSource = false;
 		if (!IOHelper::fileExists($imageSource))
 		{
-			return false;
+			if (!$sourceType->isRemote())
+			{
+				return false;
+			}
+
+			$maxCachedImageSize = craft()->config->get("maxCachedCloudImageSize");
+			$localCopy = $sourceType->getLocalCopy($fileModel);
+
+			// Resize if constrained by maxCachedImageSizes setting
+			if (is_numeric($maxCachedImageSize) && $maxCachedImageSize > 0)
+			{
+				craft()->images->loadImage($localCopy)->scaleToFit($maxCachedImageSize, $maxCachedImageSize)->saveAs($imageSource);
+			}
+			// Mark for deletion, since the maxCachedImageSizes setting is either invalid or set to 0.
+			else
+			{
+				IOHelper::move($localCopy, $imageSource);
+				$deleteSource = true;
+			}
 		}
 
 		if (!is_array($transformsToUpdate))
@@ -178,6 +197,12 @@ class AssetTransformsService extends BaseApplicationComponent
 				IOHelper::deleteFile($targetFile);
 			}
 		}
+
+		if ($deleteSource)
+		{
+			IOHelper::deleteFile($imageSource);
+		}
+
 
 		return true;
 	}
@@ -240,6 +265,7 @@ class AssetTransformsService extends BaseApplicationComponent
 	 * Index a transform.
 	 *
 	 * @param AssetTransformIndexModel $transformIndexData
+	 * @return bool
 	 */
 	public function generateTransform(AssetTransformIndexModel $transformIndexData)
 	{
@@ -258,7 +284,7 @@ class AssetTransformsService extends BaseApplicationComponent
 		}
 		else
 		{
-			$parameters = $this->normalizeTransform(substr($transformIndexData->location, 1));
+			$parameters = $this->normalizeTransform(mb_substr($transformIndexData->location, 1));
 		}
 
 		$sourceType = craft()->assetSources->getSourceTypeById($transformIndexData->sourceId);
@@ -273,7 +299,7 @@ class AssetTransformsService extends BaseApplicationComponent
 			if (!$parameters->isNamedTransform() || ($parameters->isNamedTransform() && $existingFileTimeModified >= $parameters->dimensionChangeTime))
 			{
 				// We have a satisfactory match - let's call it a day.
-				return;
+				return true;
 			}
 		}
 
@@ -292,14 +318,14 @@ class AssetTransformsService extends BaseApplicationComponent
 					// We have a satisfactory match and the record has been inserted already.
 					// Now copy the file to the new home
 					$sourceType->copyTransform($file, $alternateLocation, $transformIndexData->location);
-					return;
+					return true;
 				}
 			}
 
 		}
 
 		// Just create it.
-		$this->updateTransforms($file, $parameters);
+		return $this->updateTransforms($file, $parameters);
 	}
 
 	/**

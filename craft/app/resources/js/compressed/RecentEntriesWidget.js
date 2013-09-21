@@ -1,10 +1,9 @@
-/*!
- * Craft by Pixel & Tonic
- *
- * @package   Craft
- * @author    Pixel & Tonic, Inc.
- * @copyright Copyright (c) 2013, Pixel & Tonic, Inc.
- * @license   http://buildwithcraft.com/license Craft License Agreement
- * @link      http://buildwithcraft.com
- */
-(function(a){Craft.RecentEntriesWidget=Garnish.Base.extend({params:null,$widget:null,$body:null,$container:null,$tbody:null,hasEntries:null,init:function(b,c){this.params=c;this.$widget=a("#widget"+b);this.$body=this.$widget.find(".body:first");this.$container=this.$widget.find(".container:first");this.$tbody=this.$container.find("tbody:first");this.hasEntries=!!this.$tbody.length;Craft.RecentEntriesWidget.instances.push(this)},addEntry:function(e){this.$container.css("margin-top",0);var g=this.$container.height();if(!this.hasEntries){var c=a('<table class="data"/>').prependTo(this.$container);this.$tbody=a("<tbody/>").appendTo(c)}this.$tbody.prepend('<tr><td><a href="'+e.url+'">'+e.title+'</a> <span class="light">'+e.postDate+(Craft.hasPackage("Users")?" "+Craft.t("by {author}",{author:e.username}):"")+"</span></td></tr>");var b=this.$container.height(),f=b-g;this.$container.css("margin-top",-f);var d={"margin-top":0};if(!this.hasEntries){d["margin-bottom"]=-g;this.hasEntries=true}this.$container.animate(d)}},{instances:[]})})(jQuery);
+/*
+ Copyright (c) 2013, Pixel & Tonic, Inc.
+ @license   http://buildwithcraft.com/license Craft License Agreement
+ @link      http://buildwithcraft.com
+*/
+(function(c){Craft.RecentEntriesWidget=Garnish.Base.extend({params:null,$widget:null,$body:null,$container:null,$tbody:null,hasEntries:null,init:function(a,b){this.params=b;this.$widget=c("#widget"+a);this.$body=this.$widget.find(".body:first");this.$container=this.$widget.find(".container:first");this.$tbody=this.$container.find("tbody:first");this.hasEntries=!!this.$tbody.length;Craft.RecentEntriesWidget.instances.push(this)},addEntry:function(a){this.$container.css("margin-top",0);var b=this.$container.height();
+if(!this.hasEntries){var d=c('<table class="data"/>').prependTo(this.$container);this.$tbody=c("<tbody/>").appendTo(d)}this.$tbody.prepend('<tr><td><a href="'+a.url+'">'+a.title+'</a> <span class="light">'+a.postDate+(Craft.hasPackage("Users")?" "+Craft.t("by {author}",{author:a.username}):"")+"</span></td></tr>");a=this.$container.height()-b;this.$container.css("margin-top",-a);a={"margin-top":0};this.hasEntries||(a["margin-bottom"]=-b,this.hasEntries=!0);this.$container.animate(a)}},{instances:[]})})(jQuery);
+
+//# sourceMappingURL=RecentEntriesWidget.min.map

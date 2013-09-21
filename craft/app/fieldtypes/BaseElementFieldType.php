@@ -92,10 +92,20 @@ abstract class BaseElementFieldType extends BaseFieldType
 	 */
 	public function getSettingsHtml()
 	{
+		$sources = array();
+
+		foreach ($this->getElementType()->getSources() as $key => $source)
+		{
+			if (!isset($source['heading']))
+			{
+				$sources[] = array('label' => $source['label'], 'value' => $key);
+			}
+		}
+
 		return craft()->templates->render('_components/fieldtypes/elementfieldsettings', array(
 			'allowMultipleSources' => $this->allowMultipleSources,
 			'allowLimit'           => $this->allowLimit,
-			'sources'              => $this->getElementType()->getSources(),
+			'sources'              => $sources,
 			'settings'             => $this->getSettings(),
 			'type'                 => $this->getName()
 		));
@@ -168,6 +178,7 @@ abstract class BaseElementFieldType extends BaseFieldType
 			'jsClass'        => $this->inputJsClass,
 			'elementType'    => new ElementTypeVariable($this->getElementType()),
 			'id'             => $id,
+			'storageKey'     => 'field.'.$this->model->id,
 			'name'           => $name,
 			'elements'       => $elements->all,
 			'sources'        => $sources,
@@ -216,7 +227,7 @@ abstract class BaseElementFieldType extends BaseFieldType
 	protected function getAddButtonLabel()
 	{
 		return Craft::t('Add {type}', array(
-			'type' => strtolower($this->getElementType()->getClassHandle())
+			'type' => mb_strtolower($this->getElementType()->getClassHandle())
 		));
 	}
 

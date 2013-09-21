@@ -10,10 +10,8 @@
  * @link      http://buildwithcraft.com
  */
 
-$common = require_once(CRAFT_APP_PATH.'etc/config/common.php');
-
 return CMap::mergeArray(
-	$common,
+	$commonConfig,
 
 	array(
 		'basePath'    => CRAFT_APP_PATH,
@@ -23,12 +21,6 @@ return CMap::mergeArray(
 		// autoloading model and component classes
 		'import' => array(
 			'application.lib.*',
-			'application.lib.PhpMailer.*',
-			'application.lib.Requests.*',
-			'application.lib.Requests.Auth.*',
-			'application.lib.Requests.Response.*',
-			'application.lib.Requests.Transport.*',
-			'application.lib.qqFileUploader.*',
 		),
 
 		'params' => array(

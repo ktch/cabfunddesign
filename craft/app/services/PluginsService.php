@@ -119,7 +119,7 @@ class PluginsService extends BaseApplicationComponent
 
 					$this->_enabledPluginInfo[$row['class']] = $row;
 
-					$lcPluginHandle = strtolower($plugin->getClassHandle());
+					$lcPluginHandle = mb_strtolower($plugin->getClassHandle());
 					$this->_plugins[$lcPluginHandle] = $plugin;
 					$this->_enabledPlugins[$lcPluginHandle] = $plugin;
 					$names[] = $plugin->getName();
@@ -161,7 +161,7 @@ class PluginsService extends BaseApplicationComponent
 	 */
 	public function getPlugin($handle, $enabledOnly = true)
 	{
-		$lcPluginHandle = strtolower($handle);
+		$lcPluginHandle = mb_strtolower($handle);
 
 		if ($enabledOnly)
 		{
@@ -242,13 +242,13 @@ class PluginsService extends BaseApplicationComponent
 							$fileName = IOHelper::getFileName($path, false);
 
 							// Chop off the "Plugin" suffix
-							$handle = substr($fileName, 0, strlen($fileName) - 6);
+							$handle = mb_substr($fileName, 0, mb_strlen($fileName) - 6);
 
 							$plugin = $this->getPlugin($handle, false);
 
 							if ($plugin)
 							{
-								$this->_allPlugins[strtolower($handle)] = $plugin;
+								$this->_allPlugins[mb_strtolower($handle)] = $plugin;
 								$names[] = $plugin->getName();
 							}
 						}
@@ -276,7 +276,7 @@ class PluginsService extends BaseApplicationComponent
 	public function enablePlugin($handle)
 	{
 		$plugin = $this->getPlugin($handle, false);
-		$lcPluginHandle = strtolower($plugin->getClassHandle());
+		$lcPluginHandle = mb_strtolower($plugin->getClassHandle());
 
 		if (!$plugin)
 		{
@@ -309,7 +309,7 @@ class PluginsService extends BaseApplicationComponent
 	public function disablePlugin($handle)
 	{
 		$plugin = $this->getPlugin($handle);
-		$lcPluginHandle = strtolower($plugin->getClassHandle());
+		$lcPluginHandle = mb_strtolower($plugin->getClassHandle());
 
 		if (!$plugin)
 		{
@@ -343,7 +343,7 @@ class PluginsService extends BaseApplicationComponent
 	public function installPlugin($handle)
 	{
 		$plugin = $this->getPlugin($handle, false);
-		$lcPluginHandle = strtolower($plugin->getClassHandle());
+		$lcPluginHandle = mb_strtolower($plugin->getClassHandle());
 
 		if (!$plugin)
 		{
@@ -355,7 +355,7 @@ class PluginsService extends BaseApplicationComponent
 			throw new Exception(Craft::t('“{plugin}” is already installed.', array('plugin' => $plugin->getName())));
 		}
 
-		$transaction = craft()->db->beginTransaction();
+		$transaction = craft()->db->getCurrentTransaction() === null ? craft()->db->beginTransaction() : null;
 		try
 		{
 			// Add the plugins as a record to the database.
@@ -373,11 +373,18 @@ class PluginsService extends BaseApplicationComponent
 			$this->_importPluginComponents($plugin);
 			$plugin->createTables();
 
-			$transaction->commit();
+			if ($transaction !== null)
+			{
+				$transaction->commit();
+			}
 		}
 		catch (\Exception $e)
 		{
-			$transaction->rollBack();
+			if ($transaction !== null)
+			{
+				$transaction->rollback();
+			}
+
 			throw $e;
 		}
 
@@ -397,7 +404,7 @@ class PluginsService extends BaseApplicationComponent
 	public function uninstallPlugin($handle)
 	{
 		$plugin = $this->getPlugin($handle, false);
-		$lcPluginHandle = strtolower($plugin->getClassHandle());
+		$lcPluginHandle = mb_strtolower($plugin->getClassHandle());
 
 		if (!$plugin)
 		{
@@ -419,7 +426,7 @@ class PluginsService extends BaseApplicationComponent
 
 		$plugin->onBeforeUninstall();
 
-		$transaction = craft()->db->beginTransaction();
+		$transaction = craft()->db->getCurrentTransaction() === null ? craft()->db->beginTransaction() : null;
 		try
 		{
 			$plugin->dropTables();
@@ -427,11 +434,18 @@ class PluginsService extends BaseApplicationComponent
 			// Remove the row from the database.
 			craft()->db->createCommand()->delete('plugins', array('class' => $plugin->getClassHandle()));
 
-			$transaction->commit();
+			if ($transaction !== null)
+			{
+				$transaction->commit();
+			}
 		}
 		catch (\Exception $e)
 		{
-			$transaction->rollBack();
+			if ($transaction !== null)
+			{
+				$transaction->rollback();
+			}
+
 			throw $e;
 		}
 
@@ -641,7 +655,7 @@ class PluginsService extends BaseApplicationComponent
 	private function _importPluginComponents(BasePlugin $plugin)
 	{
 		$pluginHandle = $plugin->getClassHandle();
-		$lcPluginHandle = strtolower($plugin->getClassHandle());
+		$lcPluginHandle = mb_strtolower($plugin->getClassHandle());
 		$pluginFolder = craft()->path->getPluginsPath().$lcPluginHandle.'/';
 
 		foreach ($this->componentTypes as $type => $typeInfo)
@@ -696,7 +710,7 @@ class PluginsService extends BaseApplicationComponent
 			}
 
 			$serviceName = implode('_', $parts);
-			$serviceName = substr($serviceName, 0, -strlen('Service'));
+			$serviceName = mb_substr($serviceName, 0, - mb_strlen('Service'));
 
 			if (!craft()->getComponent($serviceName, false))
 			{
@@ -728,7 +742,7 @@ class PluginsService extends BaseApplicationComponent
 		// Skip the autoloader
 		if (!class_exists($nsClass, false))
 		{
-			$path = craft()->path->getPluginsPath().strtolower($handle).'/'.$class.'.php';
+			$path = craft()->path->getPluginsPath().mb_strtolower($handle).'/'.$class.'.php';
 
 			if (($path = IOHelper::fileExists($path, false)) !== false)
 			{
@@ -765,12 +779,12 @@ class PluginsService extends BaseApplicationComponent
 	private function _getPluginHandleFromFileSystem($iHandle)
 	{
 		$pluginsPath = craft()->path->getPluginsPath();
-		$fullPath = $pluginsPath.strtolower($iHandle).'/'.$iHandle.'Plugin.php';
+		$fullPath = $pluginsPath.mb_strtolower($iHandle).'/'.$iHandle.'Plugin.php';
 
 		if (($file = IOHelper::fileExists($fullPath, true)) !== false)
 		{
 			$file = IOHelper::getFileName($file, false);
-			return substr($file, 0, strlen($file) - strlen('Plugin'));
+			return mb_substr($file, 0, mb_strlen($file) - mb_strlen('Plugin'));
 		}
 
 		return false;

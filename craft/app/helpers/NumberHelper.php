@@ -79,7 +79,7 @@ class NumberHelper
 	public static function lowerAlpha($num)
 	{
 		$alpha = static::upperAlpha($num);
-		return strtolower($alpha);
+		return mb_strtolower($alpha);
 	}
 
 	/**
@@ -131,7 +131,7 @@ class NumberHelper
 	public static function lowerRoman($num)
 	{
 		$roman = static::upperRoman($num);
-		return strtolower($roman);
+		return mb_strtolower($roman);
 	}
 
 	/**

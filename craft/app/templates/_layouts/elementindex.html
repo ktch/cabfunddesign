@@ -20,14 +20,17 @@
 
 
 {% block content %}
-	{% include "_elements/indexcontainer" with { hasThumbs: elementType.hasThumbs() } %}
+	<div class="elementindex">
+		{% include "_elements/indexcontainer" %}
+	</div>
 {% endblock %}
 
 
 {% block initJs %}
 	Craft.createElementIndex('{{ elementTypeClass }}', $('#main'), {
-		id: '{{ elementTypeClass }}Index',
-		criteria: { status: null }
+		context:    'index',
+		storageKey: 'elementindex.{{ elementTypeClass }}',
+		criteria:   { status: null }
 	});
 {% endblock %}
 

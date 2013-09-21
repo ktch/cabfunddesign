@@ -15,7 +15,7 @@ html, body { height: 100%; }
 
 .pane-body .sidebar ul li a .step { display: block; float: left; margin: -3px 8px -3px 0; border-radius: 12px; width: 24px; height: 24px; line-height: 24px; text-align: center; font-size: 14px; color: #fff; text-shadow: none; background: #999; }
 
-.pane-body .sidebar ul li a.sel .step { color: #5295ff; background: #fff; -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
+.pane-body .sidebar ul li a.sel .step { color: #0d78f2; background: #fff; -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
 
 .pane-body .field + .field:not(.pane-item), .pane-body .grid + .field, .pane-body .field + .grid .field:first-child, .pane-body .grid + .grid .field:first-child { padding-top: 0 !important; }
 

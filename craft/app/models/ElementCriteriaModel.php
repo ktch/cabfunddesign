@@ -18,6 +18,9 @@ class ElementCriteriaModel extends BaseModel
 {
 	private $_elementType;
 
+	private $_idsCache;
+	private $_totalCache;
+
 	/**
 	 * Constructor
 	 *
@@ -38,6 +41,7 @@ class ElementCriteriaModel extends BaseModel
 	{
 		$attributes = array(
 			'id'            => AttributeType::Number,
+			'ref'           => AttributeType::String,
 			'locale'        => AttributeType::Locale,
 			'uri'           => AttributeType::String,
 			'status'        => array(AttributeType::String, 'default' => BaseElementModel::ENABLED),
@@ -50,8 +54,8 @@ class ElementCriteriaModel extends BaseModel
 			'dateCreated'   => AttributeType::Mixed,
 			'dateUpdated'   => AttributeType::Mixed,
 			'parentOf'      => AttributeType::Mixed,
-			'childOf'       => AttributeType::Mixed,
 			'parentField'   => AttributeType::String,
+			'childOf'       => AttributeType::Mixed,
 			'childField'    => AttributeType::String,
 		);
 
@@ -68,6 +72,27 @@ class ElementCriteriaModel extends BaseModel
 		}
 
 		return $attributes;
+	}
+
+	/**
+	 * Clears the cached values when a new attribute is set.
+	 *
+	 * @param string $name
+	 * @param mixed $value
+	 * @return bool
+	 */
+	public function setAttribute($name, $value)
+	{
+		if (parent::setAttribute($name, $value))
+		{
+			$this->_idsCache = null;
+			$this->_totalCache = null;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	/**
@@ -110,7 +135,13 @@ class ElementCriteriaModel extends BaseModel
 	public function ids($attributes = null)
 	{
 		$this->setAttributes($attributes);
-		return craft()->elements->findElements($this, true);
+
+		if (!isset($this->_idsCache))
+		{
+			$this->_idsCache = craft()->elements->findElements($this, true);
+		}
+
+		return $this->_idsCache;
 	}
 
 	/**
@@ -163,6 +194,12 @@ class ElementCriteriaModel extends BaseModel
 	public function total($attributes = null)
 	{
 		$this->setAttributes($attributes);
-		return craft()->elements->getTotalElements($this);
+
+		if (!isset($this->_totalCache))
+		{
+			$this->_totalCache = craft()->elements->getTotalElements($this);
+		}
+
+		return $this->_totalCache;
 	}
 }

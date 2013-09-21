@@ -1,4 +1,4 @@
-/*!
+/**
  * Craft by Pixel & Tonic
  *
  * @package   Craft
@@ -25,6 +25,7 @@ var CP = Garnish.Base.extend({
 
 	$notificationWrapper: null,
 	$notificationContainer: null,
+	$contentTabsContainer: null,
 	$main: null,
 	$sidebar: null,
 	$altSidebar: null,
@@ -86,35 +87,15 @@ var CP = Garnish.Base.extend({
 		this.onWindowScroll();
 
 		// Fade the notification out in two seconds
-		var $notifications = this.$notificationContainer.children();
-		$notifications.delay(CP.notificationDuration).fadeOut();
+		var $errorNotifications = this.$notificationContainer.children('.error'),
+			$otherNotifications = this.$notificationContainer.children(':not(.error)');
+
+		$errorNotifications.delay(CP.notificationDuration * 2).fadeOut();
+		$otherNotifications.delay(CP.notificationDuration).fadeOut();
 
 
 		// Tabs
-		this.tabs = {};
-		var $tabs = $('#tabs a');
-
-		// Find the tabs that link to a div on the page
-		for (var i = 0; i < $tabs.length; i++)
-		{
-			var $tab = $($tabs[i]),
-				href = $tab.attr('href');
-
-			if (href && href.charAt(0) == '#')
-			{
-				this.tabs[href] = {
-					$tab: $tab,
-					$target: $(href)
-				};
-
-				this.addListener($tab, 'activate', 'selectTab');
-			}
-
-			if (!this.selectedTab && $tab.hasClass('sel'))
-			{
-				this.selectedTab = href;
-			}
-		}
+		this.initContentTabs();
 
 		if (document.location.hash && typeof this.tabs[document.location.hash] != 'undefined')
 		{
@@ -168,16 +149,63 @@ var CP = Garnish.Base.extend({
 
 		// Listen for save shortcuts in primary forms
 		var $primaryForm = $('form[data-saveshortcut="1"]:first');
+
 		if ($primaryForm.length == 1)
 		{
-			this.addListener(Garnish.$doc, 'keydown', function (ev) {
+			this.addListener(Garnish.$doc, 'keydown', function(ev)
+			{
 				if ((ev.metaKey || ev.ctrlKey) && ev.keyCode == Garnish.S_KEY)
 				{
+					ev.preventDefault();
+
+					if ($primaryForm.data('saveshortcut-redirect'))
+					{
+						$('<input type="hidden" name="redirect" value="'+$primaryForm.data('saveshortcut-redirect')+'"/>').appendTo($primaryForm);
+					}
+
 					$primaryForm.submit();
-					return false;
 				}
 				return true;
 			});
+		}
+	},
+
+	initContentTabs: function()
+	{
+		this.$contentTabsContainer = $('#tabs');
+		this.tabs = {};
+		this.selectedTab = null;
+
+		var $tabs = this.$contentTabsContainer.find('a');
+
+		if ($tabs.length)
+		{
+			// Find the tabs that link to a div on the page
+			for (var i = 0; i < $tabs.length; i++)
+			{
+				var $tab = $($tabs[i]),
+					href = $tab.attr('href');
+
+				if (href && href.charAt(0) == '#')
+				{
+					this.tabs[href] = {
+						$tab: $tab,
+						$target: $(href)
+					};
+
+					this.addListener($tab, 'activate', 'selectContentTab');
+				}
+
+				if (!this.selectedTab && $tab.hasClass('sel'))
+				{
+					this.selectedTab = href;
+				}
+			}
+
+			if (!this.selectedTab)
+			{
+				$($tabs[0]).trigger('activate');
+			}
 		}
 	},
 
@@ -495,10 +523,17 @@ var CP = Garnish.Base.extend({
 	 */
 	displayNotification: function(type, message)
 	{
+		var notificationDuration = CP.notificationDuration;
+
+		if (type == 'error')
+		{
+			notificationDuration *= 2;
+		}
+
 		$('<div class="notification '+type+'">'+message+'</div>')
 			.appendTo(this.$notificationContainer)
 			.fadeIn('fast')
-			.delay(CP.notificationDuration)
+			.delay(notificationDuration)
 			.fadeOut();
 	},
 
@@ -519,22 +554,35 @@ var CP = Garnish.Base.extend({
 	 */
 	displayError: function(message)
 	{
+		if (!message)
+		{
+			message = Craft.t('An unknown error occurred.');
+		}
+
 		this.displayNotification('error', message);
 	},
 
 	/**
-	 * Select a tab
+	 * Deselects the current content tab.
 	 */
-	selectTab: function(ev)
+	deselectContentTab: function()
+	{
+		if (this.selectedTab)
+		{
+			this.tabs[this.selectedTab].$tab.removeClass('sel');
+			this.tabs[this.selectedTab].$target.addClass('hidden');
+		}
+	},
+
+	/**
+	 * Selects a content tab.
+	 */
+	selectContentTab: function(ev)
 	{
 		if (!this.selectedTab || ev.currentTarget != this.tabs[this.selectedTab].$tab[0])
 		{
 			// Hide the selected tab
-			if (this.selectedTab)
-			{
-				this.tabs[this.selectedTab].$tab.removeClass('sel');
-				this.tabs[this.selectedTab].$target.addClass('hidden');
-			}
+			this.deselectContentTab();
 
 			var $tab = $(ev.currentTarget).addClass('sel');
 			this.selectedTab = $tab.attr('href');
@@ -588,26 +636,21 @@ var CP = Garnish.Base.extend({
 
 				if (confirm(Craft.t('Are you sure you want to transfer your license to this domain?')))
 				{
-					Craft.postActionRequest('app/transferLicenseToCurrentDomain', $.proxy(function(response)
-					{
-						if (response.success)
+					Craft.postActionRequest('app/transferLicenseToCurrentDomain', $.proxy(function(response, textStatus) {
+
+						if (textStatus == 'success')
 						{
-							$transferDomainLink.parent().remove();
-							this.displayNotice(Craft.t('License transferred.'));
-						}
-						else
-						{
-							if (response.error)
+							if (response.success)
 							{
-								var error = response.error;
+								$transferDomainLink.parent().remove();
+								this.displayNotice(Craft.t('License transferred.'));
 							}
 							else
 							{
-								var error = 'An unknown error occurred.';
+								Craft.cp.displayError(response.error);
 							}
-
-							alert(error);
 						}
+
 					}, this));
 				}
 			}, this));
@@ -628,25 +671,20 @@ var CP = Garnish.Base.extend({
 					message: $link.prop('className').substr(5)
 				};
 
-				Craft.postActionRequest('app/shunCpAlert', data, $.proxy(function(response)
-				{
-					if (response.success)
+				Craft.postActionRequest('app/shunCpAlert', data, $.proxy(function(response, textStatus) {
+
+					if (textStatus == 'success')
 					{
-						$link.parent().remove();
-					}
-					else
-					{
-						if (response.error)
+						if (response.success)
 						{
-							var error = response.error;
+							$link.parent().remove();
 						}
 						else
 						{
-							var error = 'An unknown error occurred.';
+							Craft.cp.displayError(response.error);
 						}
-
-						alert(error);
 					}
+
 				}, this));
 
 			}, this));

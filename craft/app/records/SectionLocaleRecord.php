@@ -31,8 +31,9 @@ class SectionLocaleRecord extends BaseRecord
 	protected function defineAttributes()
 	{
 		return array(
-			'locale'    => array(AttributeType::Locale, 'required' => true),
-			'urlFormat' => AttributeType::String,
+			'locale'          => array(AttributeType::Locale, 'required' => true),
+			'urlFormat'       => AttributeType::String,
+			'nestedUrlFormat' => AttributeType::String,
 		);
 	}
 

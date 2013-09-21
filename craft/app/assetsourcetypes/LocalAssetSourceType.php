@@ -64,8 +64,8 @@ class LocalAssetSourceType extends BaseAssetSourceType
 	public function prepSettings($settings)
 	{
 		// Add a trailing slash to the Path and URL settings
-		$settings['path'] = rtrim($settings['path'], '/').'/';
-		$settings['url'] = rtrim($settings['url'], '/').'/';
+		$settings['path'] = !empty($settings['path']) ? rtrim($settings['path'], '/').'/' : '';
+		$settings['url'] = !empty($settings['url']) ? rtrim($settings['url'], '/').'/' : '';
 
 		return $settings;
 	}
@@ -95,7 +95,7 @@ class LocalAssetSourceType extends BaseAssetSourceType
 		{
 			$fileList = array_filter($fileList, function ($value) use ($localPath)
 			{
-				$path = substr($value, strlen($localPath));
+				$path = mb_substr($value, mb_strlen($localPath));
 				$segments = explode('/', $path);
 
 				foreach ($segments as $segment)
@@ -147,7 +147,7 @@ class LocalAssetSourceType extends BaseAssetSourceType
 	/**
 	 * Get the file system path for upload source.
 	 *
-	 * @param BaseAssetSourceType $sourceType = null
+	 * @param BaseAssetSourceType|LocalAssetSourceType $sourceType = null
 	 * @return string
 	 */
 	private function _getSourceFileSystemPath(LocalAssetSourceType $sourceType = null)
@@ -179,7 +179,7 @@ class LocalAssetSourceType extends BaseAssetSourceType
 		$file = $indexEntryModel->uri;
 
 		// This is the part of the path that actually matters
-		$uriPath = substr($file, strlen($uploadPath));
+		$uriPath = mb_substr($file, mb_strlen($uploadPath));
 
 		$fileModel = $this->_indexFile($uriPath);
 

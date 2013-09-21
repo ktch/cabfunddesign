@@ -19,8 +19,8 @@ class UpdateHelper
 	private static $_manifestData;
 
 	/**
-	 * @static
 	 * @param $manifestData
+	 * @return void
 	 */
 	public static function rollBackFileChanges($manifestData)
 	{
@@ -65,6 +65,7 @@ class UpdateHelper
 
 	/**
 	 * @param $backupPath
+	 * @return void
 	 */
 	public static function rollBackDatabaseChanges($backupPath)
 	{
@@ -174,8 +175,8 @@ class UpdateHelper
 		if (static::isManifestVersionInfoLine($manifestData[0]))
 		{
 			$parts = explode(';', $manifestData[0]);
-			$index = strrpos($parts[0], '.');
-			$version = substr($parts[0], $index + 1);
+			$index = mb_strrpos($parts[0], '.');
+			$version = mb_substr($parts[0], $index + 1);
 			return $version;
 		}
 
@@ -193,8 +194,8 @@ class UpdateHelper
 		if (static::isManifestVersionInfoLine($manifestData[0]))
 		{
 			$parts = explode(';', $manifestData[0]);
-			$index = strrpos($parts[0], '.');
-			$build = substr($parts[0], 2, $index - 2);
+			$index = mb_strrpos($parts[0], '.');
+			$build = mb_substr($parts[0], 2, $index - 2);
 			return $build;
 		}
 
@@ -208,7 +209,7 @@ class UpdateHelper
 	 */
 	public static function isManifestMigrationLine($line)
 	{
-		if (strpos($line, 'migrations/') !== false)
+		if (mb_strpos($line, 'migrations/') !== false)
 		{
 			return true;
 		}
@@ -250,7 +251,7 @@ class UpdateHelper
 				// Only use the manifest data starting from the local version
 				for ($counter = 0; $counter < count($manifestData); $counter++)
 				{
-					if (strpos($manifestData[$counter], '##'.$updateModel->app->localVersion.'.'.$updateModel->app->localBuild) !== false)
+					if (mb_strpos($manifestData[$counter], '##'.$updateModel->app->localVersion.'.'.$updateModel->app->localBuild) !== false)
 					{
 						break;
 					}
@@ -288,7 +289,7 @@ class UpdateHelper
 	 */
 	public static function isManifestLineAFolder($line)
 	{
-		if (substr($line, -1) == '*')
+		if (mb_substr($line, -1) == '*')
 		{
 			return true;
 		}

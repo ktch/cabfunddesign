@@ -67,6 +67,16 @@ class AppVariable
 	}
 
 	/**
+	 * Returns the site UID.
+	 *
+	 * @return string
+	 */
+	public function getSiteUid()
+	{
+		return Craft::getSiteUid();
+	}
+
+	/**
 	 * Returns the site language.
 	 *
 	 * @return string
@@ -84,6 +94,26 @@ class AppVariable
 	public function isSystemOn()
 	{
 		return Craft::isSystemOn();
+	}
+
+	/**
+	 * Returns how many updates are available.
+	 *
+	 * @return int
+	 */
+	public function getTotalAvailableUpdates()
+	{
+		return craft()->updates->getTotalAvailableUpdates();
+	}
+
+	/**
+	 * Returns whether a critical update is available.
+	 *
+	 * @return bool
+	 */
+	public function isCriticalUpdateAvailable()
+	{
+		return craft()->updates->isCriticalUpdateAvailable();
 	}
 
 	/**

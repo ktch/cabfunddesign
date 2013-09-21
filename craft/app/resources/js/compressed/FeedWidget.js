@@ -1,10 +1,8 @@
-/*!
- * Craft by Pixel & Tonic
- *
- * @package   Craft
- * @author    Pixel & Tonic, Inc.
- * @copyright Copyright (c) 2013, Pixel & Tonic, Inc.
- * @license   http://buildwithcraft.com/license Craft License Agreement
- * @link      http://buildwithcraft.com
- */
-Craft.FeedWidget=Garnish.Base.extend({$widget:null,init:function(c,b,a){this.$widget=$("#widget"+c);this.$widget.addClass("loading");var d={url:b,limit:a};Craft.postActionRequest("dashboard/getFeedItems",d,$.proxy(function(e){var j=this.$widget.find("td");for(var f=0;f<e.items.length;f++){var g=e.items[f],k=$(j[f]);var h='<a href="'+g.permalink+'" target="_blank">'+g.title+"</a> ";if(g.date){h+='<span class="light nowrap">'+g.date+"</span>"}k.html(h)}this.$widget.removeClass("loading")},this))}});
+/*
+ Copyright (c) 2013, Pixel & Tonic, Inc.
+ @license   http://buildwithcraft.com/license Craft License Agreement
+ @link      http://buildwithcraft.com
+*/
+Craft.FeedWidget=Garnish.Base.extend({$widget:null,init:function(c,d,e){this.$widget=$("#widget"+c);this.$widget.addClass("loading");Craft.postActionRequest("dashboard/getFeedItems",{url:d,limit:e},$.proxy(function(g,c){this.$widget.removeClass("loading");if("success"==c)for(var d=this.$widget.find("td"),a=0;a<g.items.length;a++){var b=g.items[a],e=$(d[a]),f='<a href="'+b.permalink+'" target="_blank">'+b.title+"</a> ";b.date&&(f+='<span class="light nowrap">'+b.date+"</span>");e.html(f)}},this))}});
+
+//# sourceMappingURL=FeedWidget.min.map

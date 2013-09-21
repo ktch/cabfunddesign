@@ -20,13 +20,13 @@
 
 #packages ul li:before { font-family: 'Craft'; speak: none; -webkit-font-feature-settings: "liga", "dlig"; -moz-font-feature-settings: "liga=1, dlig=1"; -moz-font-feature-settings: "liga", "dlig"; -ms-font-feature-settings: "liga", "dlig"; -o-font-feature-settings: "liga", "dlig"; font-feature-settings: "liga", "dlig"; text-rendering: optimizeLegibility; font-weight: normal; font-variant: normal; text-transform: none; line-height: 1; -webkit-font-smoothing: subpixel-antialiased; display: inline-block; text-align: center; font-style: normal; vertical-align: middle; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; content: '√'; float: left; margin: 3px 0 0 -17px; font-size: 10px; }
 
-#packages .package .buttons { position: absolute; left: 0; border-radius: 0 0 1px 1px; bottom: 0; padding: 11px 15px 15px; margin: 0; border-top: 1px solid #eeeeee; width: 200px; min-height: 31px; background: #fcfcfc; }
+#packages .package .buttons { position: absolute; left: 0; border-radius: 0 0 1px 1px; bottom: 0; padding: 11px 15px 15px; margin: 0; border-top: 1px solid #e3e5e8; width: 200px; min-height: 31px; background: #fcfcfc; }
 
 #packages .package .buttons .btn { margin-top: 4px; font-weight: bold; }
 
 #packages .package .buttons .btn.buy { float: left; color: #00b007; }
 
-#packages .package .buttons .btn.buy del { color: #555555; font-weight: bold; }
+#packages .package .buttons .btn.buy del { color: #29323d; font-weight: bold; }
 
 #packages .package .buttons .btn.buy span { display: inline-block; margin: 0 0 2px 8px; border-left: 1px solid #eaeaea; padding-left: 8px; line-height: 19px; }
 
@@ -46,6 +46,6 @@ p.light sup { margin-right: 2px; }
 
 #ccmodal p.secure { margin-bottom: -15px !important; }
 
-#ccmodal p.secure:before { margin-right: 5px; color: #555555; }
+#ccmodal p.secure:before { margin-right: 5px; color: #29323d; }
 
 #ccmodal .spinner { position: absolute; bottom: 0; right: -25px; }

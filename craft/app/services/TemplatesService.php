@@ -34,18 +34,6 @@ class TemplatesService extends BaseApplicationComponent
 	private $_translations = array();
 
 	/**
-	 * Registers the Twig autoloader.
-	 */
-	public function registerTwigAutoloader()
-	{
-		if (!class_exists('\Twig_Autoloader', false))
-		{
-			require_once craft()->path->getLibPath().'Twig/Autoloader.php';
-			Craft::registerAutoloader(array(new \Twig_Autoloader, 'autoload'));
-		}
-	}
-
-	/**
 	 * Gets the Twig instance.
 	 *
 	 * @param  string            $loaderClass The template loader class to use with the environment.
@@ -60,12 +48,6 @@ class TemplatesService extends BaseApplicationComponent
 
 		if (!isset($this->_twigs[$loaderClass]))
 		{
-			// Is this the first Twig instance EVER?
-			if (!isset($this->_twigs))
-			{
-				$this->registerTwigAutoloader();
-			}
-
 			$loader = new $loaderClass();
 			$options = $this->_getTwigOptions();
 
@@ -73,11 +55,6 @@ class TemplatesService extends BaseApplicationComponent
 
 			$twig->addExtension(new \Twig_Extension_StringLoader());
 			$twig->addExtension(new CraftTwigExtension());
-
-			if (craft()->config->get('devMode'))
-			{
-				$twig->addExtension(new \Twig_Extension_Debug());
-			}
 
 			// Give plugins a chance to add their own Twig extensions
 
@@ -454,6 +431,25 @@ class TemplatesService extends BaseApplicationComponent
 	}
 
 	/**
+	 * Returns whether a template exists or not.
+	 *
+	 * @param string $name
+	 * @return bool
+	 */
+	public function doesTemplateExist($name)
+	{
+		try
+		{
+			$this->findTemplate($name);
+			return true;
+		}
+		catch (TemplateLoaderException $e)
+		{
+			return false;
+		}
+	}
+
+	/**
 	 * Finds a template on the file system and returns its path.
 	 *
 	 * @param string $name
@@ -494,12 +490,12 @@ class TemplatesService extends BaseApplicationComponent
 			$name = craft()->request->decodePathInfo($name);
 
 			$parts = array_filter(explode('/', $name));
-			$pluginHandle = strtolower(array_shift($parts));
+			$pluginHandle = mb_strtolower(array_shift($parts));
 
 			if ($pluginHandle && ($plugin = craft()->plugins->getPlugin($pluginHandle)) !== null)
 			{
 				// Get the template path for the plugin.
-				$basePath = craft()->path->getPluginsPath().strtolower($plugin->getClassHandle()).'/templates/';
+				$basePath = craft()->path->getPluginsPath().mb_strtolower($plugin->getClassHandle()).'/templates/';
 
 				// Chop off the plugin segment, since that's already covered by $basePath
 				$tempName = implode('/', $parts);
@@ -509,11 +505,6 @@ class TemplatesService extends BaseApplicationComponent
 					return $this->_templatePaths[$name] = $path;
 				}
 			}
-		}
-
-		if (!isset($this->_twigs))
-		{
-			$this->registerTwigAutoloader();
 		}
 
 		throw new TemplateLoaderException($name);
@@ -577,7 +568,7 @@ class TemplatesService extends BaseApplicationComponent
 	 */
 	private function _validateTemplateName($name)
 	{
-		if (strpos($name, "\0") !== false)
+		if (mb_strpos($name, "\0") !== false)
 		{
 			throw new \Twig_Error_Loader(Craft::t('A template name cannot contain NUL bytes.'));
 		}

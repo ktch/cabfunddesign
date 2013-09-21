@@ -35,7 +35,7 @@
 
 
 {% set body %}
-	{% if user.admin and craft.config.devMode %}
+	{% if currentUser.admin and craft.config.devMode %}
 		<div id="devmode" title="{{ 'Craft is running in Dev Mode.'|t }}"></div>
 	{% endif %}
 
@@ -57,20 +57,47 @@
 
 	<header id="header">
 		<div class="centered">
-			<div id="account">
-				<a data-icon="user" class="menubtn" title="{{ 'My Account'|t }}" role="button"></a>
-				<div class="menu" data-align="right">
-					<ul>
-						<li><a href="{{ url('myaccount') }}">{{ "My Account"|t }}</a></li>
-						<li><a href="{{ logoutUrl }}">{{ "Sign out"|t }}</a></li>
-					</ul>
-				</div>
-			</div>
+			<ul class="right">
+				{% if currentUser.can('performUpdates') %}
+					{% set totalUpdates = craft.app.getTotalAvailableUpdates() %}
+					{% if totalUpdates %}
+						{% if totalUpdates == 1 %}
+							{% set updateText = "1 update available"|t %}
+						{% else %}
+							{% set updateText = "{num} updates available"|t({ num: totalUpdates }) %}
+						{% endif %}
+						<li class="updates{% if craft.app.isCriticalUpdateAvailable() %} critical{% endif %}">
+							<a data-icon="newstamp" href="{{ url('updates') }}" title="{{ updateText }}">
+								<span>{{ totalUpdates }}</span>
+							</a>
+						</li>
+					{% endif %}
+				{% endif %}
+
+				{% if currentUser.admin %}
+					<li>
+						<a class="settings" data-icon="settings" href="{{ url('settings') }}" title="{{ 'Settings'|t }}"></a>
+					</li>
+				{% endif %}
+
+				<li>
+					<a data-icon="user" class="myaccount menubtn" title="{{ 'My Account'|t }}" role="button"></a>
+					<div class="menu" data-align="right">
+						<ul>
+							<li><a href="{{ url('myaccount') }}">{{ "My Account"|t }}</a></li>
+							<li><a href="{{ logoutUrl }}">{{ "Sign out"|t }}</a></li>
+						</ul>
+					</div>
+				</li>
+			</ul>
 
 			<h2>{{ siteName }}</h2>
 
 			<nav>
 				<ul id="nav">
+					<li>
+						<a id="nav-home" data-icon="home" href="{{ siteUrl() }}" title="{{ 'Site Homepage'|t }}" target="_blank"></a>
+					</li>
 					{% set firstSeg = craft.request.segment(1) %}
 					{% if firstSeg == 'myaccount' %}{% set firstSeg = 'users' %}{% endif %}
 					{% for handle, item in craft.cp.nav %}
@@ -88,7 +115,7 @@
 		</div>
 	</header>
 
-	<div id="main-wrapper" class="centered">
+	<div class="centered">
 		<div id="notifications-wrapper">
 			<div id="notifications">
 				{% for type, message in craft.session.flashes %}
@@ -130,7 +157,7 @@
 
 								{% if tabIsSelected and title != tab.label %}
 									{% set title = title~' - '~tab.label %}
-								{%endif -%}
+								{% endif -%}
 
 								<li><a id="tab-{{ tabId }}" class="tab{% if tabIsSelected %} sel{% endif %}{% if tab.class is defined %} {{ tab.class }}{% endif %}" href="{{ tab.url }}">{{ tab.label }}</a></li>
 							{% endif %}
@@ -139,29 +166,34 @@
 				</nav>
 			{% endif %}
 		</header>
+	</div>
 
-		<div id="main" class="{% if hasSidebar %}has-sidebar{% endif %} {% if hasHelp %}has-help{% endif %}">
-			{% if hasSidebar %}
-				<div id="sidebar" class="sidebar">
-					{{ sidebar|raw }}
-				</div>
-			{% endif %}
+	<div id="main" class="centered {% if hasSidebar %}has-sidebar{% endif %} {% if hasHelp %}has-help{% endif %}">
+		{% if hasSidebar %}
+			<div id="sidebar" class="sidebar">
+				{{ sidebar|raw }}
+			</div>
+		{% endif %}
 
-			<main id="content" role="main">
-				{% block content %}
-					{% if content is defined %}
-						{{ content }}
-					{% endif %}
-				{% endblock %}
-
-				{% if hasHelp %}
-					<a id="help" class="help" title="{{ 'Help'|t }}" href="{{ docsUrl }}" target="_blank"></a>
+		<main id="content" role="main">
+			{% block content %}
+				{% if content is defined %}
+					{{ content }}
 				{% endif %}
-			</main>
-		</div>
+			{% endblock %}
+
+			{% if hasHelp %}
+				<a id="help" class="help" title="{{ 'Help'|t }}" href="{{ docsUrl }}" target="_blank"></a>
+			{% endif %}
+		</main>
 	</div>
 
-	<div id="footer">
-		Craft {{ craft.app.version }}.{{ craft.app.build }}  •  {{ "Released on"|t }} {{ craft.app.releaseDate.localeDate }}  •  {{ "Copyright"|t }} {{ now.year}} Pixel &amp; Tonic, Inc. {{ "All rights reserved."|t }}
-	</div>
+	<ul id="footer">
+		<li>Craft {{ craft.app.version }}.{{ craft.app.build }}</li>
+		<li>{{ "Released on"|t }} {{ craft.app.releaseDate.localeDate }}</li>
+		{% if currentUser.can('performUpdates') %}
+			<li><a href="{{ url('updates') }}">{{ totalUpdates ? updateText : "Check for updates"|t }}</a></li>
+		{% endif %}
+		<li>{{ "Copyright"|t }} {{ now.year}} Pixel &amp; Tonic, Inc. {{ "All rights reserved."|t }}</li>
+	</ul>
 {% endset %}
