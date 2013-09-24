@@ -6,6 +6,9 @@
 	<link rel="home" href="{{ siteUrl }}" />
 	<link rel="stylesheet" href="/css/styles.css">
 	
+	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+	<script src="js/jquery.easing.js"></script>
+	
 	<style>
 
 		{% if craft.assets.sourceId(1) | length %}
@@ -55,157 +58,98 @@
 		
 		<main id="content" role="main">
 		
-		<nav>
+	<!-- 	<nav>
 				<ul>
 					<li><a href="#about">ABOUT</a></li>
 					<li><a href="#login">LOGIN</a></li>
 				</ul>
-		</nav>
-			<form action="#" method="POST" class="donation-form">
-				<fieldset>
-					<legend>
-						Contact Information
-					</legend>
-					<div class="form-row form-first-name">
-						<label>First Name</label>
-						<input type="text" name="first-name" class="first-name text">
-					</div>
-					<div class="form-row form-last-name">
-						<label>Last Name</label>
-						<input type="text" name="last-name" class="last-name text">
-					</div>
-					<div class="form-row form-email">
-						<label>Email</label>
-						<input type="text" name="email" class="email text">
-					</div>
-					<div class="form-row form-phone">
-						<label>Phone</label>
-						<input type="text" name="phone" class="phone text">
-					</div>
-					<div class="form-row form-address">
-						<label>Address</label>
-						<textarea name="address" cols="30" rows="2" class="address text"></textarea>
-					</div>
-					<div class="form-row form-city">
-						<label>City</label>
-						<input type="text" name="city" class="city text">
-					</div>
-					<div class="form-row form-state">
-						<label>State</label>
-						<select name="state" class="state text">
-							<option value="AL">AL</option>
-							<option value="AK">AK</option>
-							<option value="AZ">AZ</option>
-							<option value="AR">AR</option>
-							<option value="CA">CA</option>
-							<option value="CO">CO</option>
-							<option value="CT">CT</option>
-							<option value="DE">DE</option>
-							<option value="DC">DC</option>
-							<option value="FL">FL</option>
-							<option value="GA">GA</option>
-							<option value="HI">HI</option>
-							<option value="ID">ID</option>
-							<option value="IL">IL</option>
-							<option value="IN">IN</option>
-							<option value="IA">IA</option>
-							<option value="KS">KS</option>
-							<option value="KY">KY</option>
-							<option value="LA">LA</option>
-							<option value="ME">ME</option>
-							<option value="MD">MD</option>
-							<option value="MA">MA</option>
-							<option value="MI">MI</option>
-							<option value="MN">MN</option>
-							<option value="MS">MS</option>
-							<option value="MO">MO</option>
-							<option value="MT">MT</option>
-							<option value="NE">NE</option>
-							<option value="NV">NV</option>
-							<option value="NH">NH</option>
-							<option value="NJ">NJ</option>
-							<option value="NM">NM</option>
-							<option value="NY">NY</option>
-							<option value="NC">NC</option>
-							<option value="ND">ND</option>
-							<option value="OH">OH</option>
-							<option value="OK">OK</option>
-							<option value="OR">OR</option>
-							<option value="PA">PA</option>
-							<option value="RI">RI</option>
-							<option value="SC">SC</option>
-							<option value="SD">SD</option>
-							<option value="TN">TN</option>
-							<option value="TX">TX</option>
-							<option value="UT">UT</option>
-							<option value="VT">VT</option>
-							<option value="VA">VA</option>
-							<option value="WA">WA</option>
-							<option value="WV">WV</option>
-							<option value="WI">WI</option>
-							<option value="WY">WY</option>
-						</select>
-					</div>
-					<div class="form-row form-zip">
-						<label>Zip</label>
-						<input type="text" name="zip" class="zip text">
-					</div>
-				</fieldset>
+		</nav> -->
+			<!-- multistep form -->
+			<div class="formcontainer">
+<form id="msform">
+	<!-- progressbar -->
+	
+	<!-- fieldsets -->
+	<fieldset>
+		<h2 class="fs-title">Support our mission</h2>
+		
+		<input type="button" name="next" class="next action-button" value="Donate" />
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">Select your donation amount</h2>
+		<h3 class="fs-subtitle">Thanks for supporting young people in the arts</h3>
+		<!-- <input type="text" name="email" placeholder="Email" />
+		<input type="password" name="pass" placeholder="Password" />
+		<input type="password" name="cpass" placeholder="Confirm Password" /> -->
+		<input type="button" name="next" class="next action-button" value="$25" />
+		<input type="button" name="next" class="next action-button" value="$50" />
+		<input type="button" name="next" class="next action-button" value="$100" />
+		<input type="button" name="next" class="next action-button" value="$250" />
+		<input type="button" name="next" class="next action-button" value="$1000" />
+		<input type="button" name="next" class="next action-button" value="Other" />
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">One-time or Periodic?</h2>
+		<h3 class="fs-subtitle">Your presence on the social network</h3>
+		<!-- <input type="text" name="twitter" placeholder="Twitter" />
+		<input type="text" name="facebook" placeholder="Facebook" />
+		<input type="text" name="gplus" placeholder="Google Plus" />
+		<input type="button" name="previous" class="previous action-button" value="Previous" />
+		<input type="button" name="next" class="next action-button" value="Next" /> -->
+		<input type="button" name="next" class="next action-button" value="One Time" />
+		<input type="button" name="next" class="next action-button" value="Monthly" />
+		<input type="button" name="next" class="next action-button" value="Quarterly" />
+		<input type="button" name="next" class="next action-button" value="Annually" />
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">Focus Areas</h2>
+		<h3 class="fs-subtitle">Which of our programs are most important to you?</h3>
+		
+		<input type="button" name="next" class="next action-button" value="Piano" />
+		<input type="button" name="next" class="next action-button" value="Strings" />
+		<input type="button" name="next" class="next action-button" value="Dance" />
+		<input type="button" name="next" class="next action-button" value="Photography" />
+		<input type="button" name="previous" class="previous action-button" value="Previous" />
+		<input type="button" name="next" class="next action-button" value="Next" />
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">Credit Card Information</h2>
+		<input type="text" name="fname" placeholder="Name" />
+		<input type="text" name="lname" placeholder="Number" />
+		<input type="text" name="phone" placeholder="Expiration Date" />
+		<textarea name="address" placeholder="Zip Code"></textarea>
+		<input type="button" name="next" class="next action-button" value="Next" />
+		<!-- <input type="submit" name="submit" class="submit action-button" value="Submit" /> -->
+	</fieldset>
+	<fieldset>
+		<h2 class="fs-title">Additional Gift</h2>
+			<h3 class="fs-subtitle">Our <strong>Dance</strong> program is currently underfunded. Would you consider adding $10 toward this program?</h3>
+		<input type="button" name="next" class="next action-button" value="Yes, certainly" />
+		<input type="button" name="next" class="next action-button" value="No, thanks" />
+		<!-- <input type="submit" name="submit" class="submit action-button" value="Submit" /> -->
+	</fieldset>
+	
+	<fieldset>
+		<h2 class="fs-title">Create an Account?</h2>
+			<h3 class="fs-subtitle">Would you like us to save your information for future donations? If so, simply enter your name, email, and password below. If not, just leave them blank.</h3>
+		<input type="text" name="email" placeholder="Email" />
+		<input type="password" name="pass" placeholder="Password" />
+		<input type="password" name="cpass" placeholder="Confirm Password" />
+		<input type="button" name="next" class="next action-button" value="Submit" />
+	</fieldset>
+	
+	<fieldset>
+		<h2 class="fs-title">THANK YOU!</h2>
+			<h3 class="fs-subtitle">Thank you for helping to ensure Cab Calloway School's continued success.</h3>
+	</fieldset>
+</form>
 
-				<fieldset>
-					<legend>
-						Your Generous Donation
-					</legend>
-					<div class="form-row form-amount">
-						<label><input type="radio" name="amount" class="set-amount" value="25"> $25</label>
-						<label><input type="radio" name="amount" class="set-amount" value="500"> $500</label>
-						<label><input type="radio" name="amount" class="set-amount" value="2500"> $2,500</label>
-						<label><input type="radio" name="amount" class="set-amount" value="100"> $100</label>
-						<label><input type="radio" name="amount" class="set-amount" value="1000"> $1,000</label>
-						<label><input type="radio" name="amount" class="set-amount" value="5000"> $5,000</label>
-						<label><input type="radio" name="amount" class="other-amount" value="0"> Other:</label> <input type="text" class="amount text" disabled>
-					</div>
-					<div class="form-row form-number">
-						<label>Card Number</label>
-						<input type="text" autocomplete="off" class="card-number text" value="4242424242424242">
-					</div>
-					<div class="form-row form-cvc">
-						<label>CVC</label>
-						<input type="text" autocomplete="off" class="card-cvc text" value="123">
-					</div>
-					<div class="form-row form-expiry">
-						<label>Expiration Date</label>
-						<select class="card-expiry-month text">
-							<option value="01">January</option>
-							<option value="02">February</option>
-							<option value="03">March</option>
-							<option value="04">April</option>
-							<option value="05">May</option>
-							<option value="06">June</option>
-							<option value="07">July</option>
-							<option value="08">August</option>
-							<option value="09">September</option>
-							<option value="10">October</option>
-							<option value="11">November</option>
-							<option value="12">December</option>
-						</select>
-						<select class="card-expiry-year text">
-							<option value="2012">2012</option>
-							<option value="2013">2013</option>
-							<option value="2014" selected>2014</option>
-							<option value="2015">2015</option>
-							<option value="2016">2016</option>
-							<option value="2017">2017</option>
-							<option value="2018">2018</option>
-							<option value="2019">2019</option>
-							<option value="2020">2020</option>
-						</select>
-					</div>
-					<div class="form-row form-submit">
-						<input type="submit" class="submit-button" value="Submit Donation">
-					</div>
-				</fieldset>
-			</form>
+</div>
+
+<script src="js/msform.js"></script>
+
+<!-- jQuery -->
+
 		</main>
 
 		<footer id="footer">
